@@ -26,7 +26,7 @@ const navItems = [
           { href: "/checkin-batch", label: "Check-in Lớp", icon: "📋" }
         ]
       },
-      { href: "/coaches", label: "Huấn luyện viên", icon: "🏃" },
+      { href: "#", label: "Huấn luyện viên", icon: "🏃" },
       { href: "/staff", label: "Nhân viên", icon: "👤" },
     ],
   },

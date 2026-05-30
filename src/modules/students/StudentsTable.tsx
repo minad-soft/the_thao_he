@@ -484,7 +484,7 @@ export default function StudentsTable({
             {error}
           </div>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div className="form-grid-2">
           {/* Cột 1: Thông tin Học viên */}
           <div style={{ background: "var(--bg-card)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
             <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", color: "var(--text-secondary)" }}>Thông tin Cơ bản</h4>

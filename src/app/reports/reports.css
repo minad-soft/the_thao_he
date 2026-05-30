@@ -75,6 +75,21 @@
   align-items: start;
 }
 
+@media (max-width: 992px) {
+  .reports-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .reports-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .reports-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Tooltips Recharts */
 .chart-tooltip {
   background: rgba(15, 23, 42, 0.95);

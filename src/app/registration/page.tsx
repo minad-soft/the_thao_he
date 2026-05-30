@@ -36,7 +36,7 @@ export default function RegistrationPage() {
         <p className="page-subtitle">Đăng ký học viên mới — Mã thẻ được sinh tự động</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
+      <div className="registration-grid">
         {/* Form ghi danh */}
         <RegistrationForm onRegistered={fetchRecent} />
 

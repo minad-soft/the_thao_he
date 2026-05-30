@@ -1,5 +1,19 @@
 /* ==================== Registration Page Styles ==================== */
 
+.registration-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .registration-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 .form-error {
   color: var(--accent-rose);
   font-size: 13px;
