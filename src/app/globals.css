@@ -184,6 +184,14 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
     animation: fadeIn var(--transition-fast) ease-out;
   }
 
+  /* Make toggle button prominent on mobile when sidebar is closed */
+  body:not(.sidebar-open) .sidebar-toggle-btn {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-md), var(--shadow-glow-indigo);
+  }
+
   /* Optimize layout spacing for mobile */
   .card-header {
     padding: 16px 16px;
