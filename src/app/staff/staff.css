@@ -1,0 +1,77 @@
+/* ==================== Staff Page Styles ==================== */
+
+.staff-toolbar {
+  animation: fadeIn var(--transition-smooth) ease-out;
+}
+
+.staff-username-pill {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent-indigo-light);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+/* Custom Purple Badge for Accountant (Kế toán) */
+.badge-purple {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc; /* Light purple color matching the dark premium palette */
+}
+
+/* Button to Toggle Password Visibility */
+.btn-password-toggle {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-password-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.1);
+}
+
+.btn-password-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Responsive grid for Toolbar items */
+@media (max-width: 768px) {
+  .staff-toolbar > div {
+    flex-direction: column;
+  }
+  .staff-toolbar select {
+    width: 100%;
+  }
+}
+
+/* Staff Search Bar */
+.staff-search {
+  position: relative;
+}
+
+.staff-search .form-input {
+  padding-left: 36px;
+  width: 100%;
+  height: 46px;
+}
+
+.staff-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}

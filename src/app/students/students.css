@@ -1,0 +1,151 @@
+/* ==================== Students Page Styles ==================== */
+
+.students-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.students-search {
+  position: relative;
+}
+
+.students-search .form-input {
+  padding-left: 36px;
+  width: 280px;
+}
+
+.students-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Excel Dropzone */
+.excel-dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: 16px;
+}
+
+.excel-dropzone:hover,
+.excel-dropzone.dragging {
+  border-color: var(--accent-indigo);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.excel-dropzone.has-file {
+  border-color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.05);
+  border-style: solid;
+}
+
+.excel-dropzone-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.excel-dropzone-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.excel-dropzone-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.excel-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.excel-file-icon {
+  font-size: 28px;
+}
+
+.excel-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.excel-file-size {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.excel-columns-info {
+  padding: 12px 16px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+/* Excel Result */
+.excel-result {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+}
+
+.excel-result.success {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.excel-result.error {
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.15);
+}
+
+.excel-result-success {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.excel-error-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.excel-error-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.excel-error-row {
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-rose);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.excel-error-field {
+  color: var(--accent-amber);
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}

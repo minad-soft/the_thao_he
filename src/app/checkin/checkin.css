@@ -1,0 +1,381 @@
+/* ==================== Check-in Page Styles ==================== */
+
+/* Scanner */
+.scanner-form {
+  margin-bottom: 24px;
+}
+
+.scanner-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 8px 8px 8px 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scanner-input-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.scanner-input-wrapper:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.scanner-input-wrapper:focus-within::before {
+  opacity: 1;
+}
+
+.scanner-icon {
+  font-size: 24px;
+  color: var(--text-muted);
+  transition: transform 0.3s ease, color 0.3s ease;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanner-input-wrapper:focus-within .scanner-icon {
+  color: #6366f1;
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.scanner-input {
+  flex: 1;
+  min-width: 0; /* Prevent flex blowout */
+  background-color: transparent !important;
+  background: none !important;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  padding: 12px 0;
+  z-index: 1;
+}
+
+.scanner-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.scanner-btn {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanner-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+}
+
+.scanner-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.scanner-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+}
+
+/* Check-in Layout */
+.checkin-layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* QR Ticket */
+.qr-ticket {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: slideUp var(--transition-spring) ease-out;
+}
+
+.qr-ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));
+  border-bottom: 1px solid var(--border-color);
+}
+
+.qr-ticket-check {
+  font-size: 28px;
+}
+
+.qr-ticket-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--accent-emerald-light);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qr-ticket-code-wrapper {
+  text-align: center;
+  padding: 28px 20px 20px;
+}
+
+.qr-ticket-code {
+  font-size: 36px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.qr-ticket-code-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+}
+
+.qr-ticket-info {
+  padding: 4px 24px 16px;
+}
+
+.qr-ticket-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 14px;
+}
+
+.qr-ticket-row:last-child {
+  border-bottom: none;
+}
+
+.qr-ticket-label {
+  color: var(--text-muted);
+}
+
+.qr-ticket-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.qr-ticket-print-badge {
+  text-align: center;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent-indigo-light);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.qr-ticket-warning {
+  text-align: center;
+  padding: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--accent-amber);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.qr-ticket-expired {
+  text-align: center;
+  padding: 12px;
+  background: rgba(244, 63, 94, 0.1);
+  color: var(--accent-rose);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Error State */
+.checkin-error {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  animation: slideUp var(--transition-spring) ease-out;
+}
+
+.checkin-error-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.checkin-error-message {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-rose);
+  margin-bottom: 4px;
+}
+
+.checkin-error-detail {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Stats */
+.checkin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.checkin-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.checkin-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.checkin-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.checkin-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Idle scanner animation */
+.scanner-idle {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-muted);
+}
+
+.scanner-idle-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scanner-idle-text {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* ==================== Responsive Mobile ==================== */
+@media (max-width: 1024px) {
+  .checkin-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkin-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .scanner-input-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .scanner-icon {
+    display: none; /* Hide icon on small screens to save space */
+  }
+
+  .scanner-input {
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .scanner-btn {
+    width: 100%;
+  }
+
+  .qr-ticket-code {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkin-stat {
+    padding: 12px 16px;
+  }
+
+  .checkin-stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .checkin-stat-value {
+    font-size: 20px;
+  }
+}

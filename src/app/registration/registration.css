@@ -1,0 +1,168 @@
+/* ==================== Registration Page Styles ==================== */
+
+.form-error {
+  color: var(--accent-rose);
+  font-size: 13px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.other-school-section {
+  padding: 16px;
+  margin-bottom: 20px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px dashed rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  animation: fadeIn var(--transition-smooth) ease-out;
+}
+
+.price-display {
+  padding: 10px 14px;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-emerald-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-sessions {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.price-placeholder {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.btn-submit {
+  width: 100%;
+  justify-content: center;
+  padding: 14px 24px;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+/* Result Card */
+.result-card {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.result-card-code {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding: 16px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.result-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 24px;
+}
+
+.result-details {
+  text-align: left;
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  padding: 4px 0;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 14px;
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.result-row span {
+  color: var(--text-muted);
+}
+
+.result-row strong {
+  color: var(--text-primary);
+}
+
+/* Recent Registrations */
+.recent-list {
+  padding: 0;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background var(--transition-fast);
+}
+
+.recent-item:hover {
+  background: var(--bg-glass-hover);
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent-indigo-light);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+}
+
+.recent-info {
+  flex: 1;
+}
+
+.recent-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.recent-package {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.recent-sessions {
+  font-size: 13px;
+  color: var(--accent-emerald-light);
+  font-weight: 600;
+}
