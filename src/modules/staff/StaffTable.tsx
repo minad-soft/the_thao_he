@@ -23,11 +23,6 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
     status: "ACTIVE" as 'ACTIVE' | 'INACTIVE',
   });
   const [error, setError] = useState("");
-  const [showPasswordMap, setShowPasswordMap] = useState<Record<string, boolean>>({});
-
-  const handleTogglePassword = (id: string) => {
-    setShowPasswordMap((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const handleOpenEdit = (staff: Staff) => {
     setEditingId(staff.id);
@@ -152,19 +147,9 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
                     </td>
                     <td>{staff.phone_number || "—"}</td>
                     <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontFamily: "monospace", fontSize: "14px" }}>
-                          {showPasswordMap[staff.id] ? staff.password : "••••••••"}
-                        </span>
-                        <button
-                          type="button"
-                          className="btn-password-toggle"
-                          onClick={() => handleTogglePassword(staff.id)}
-                          title={showPasswordMap[staff.id] ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                        >
-                          {showPasswordMap[staff.id] ? "👁️" : "👁️‍🗨️"}
-                        </button>
-                      </div>
+                      <span style={{ fontFamily: "monospace", fontSize: "14px", color: "var(--text-muted)" }}>
+                        ••••••••
+                      </span>
                     </td>
                     <td>
                       <span className={`badge ${getRoleBadgeClass(staff.role)}`}>

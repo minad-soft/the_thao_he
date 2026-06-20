@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
+import { hashPassword } from "@/lib/auth-utils";
 
 // PUT /api/staffs/[id] — Cập nhật thông tin nhân viên
 export async function PUT(
@@ -54,7 +55,7 @@ export async function PUT(
 
     // Chỉ cập nhật mật khẩu nếu có nhập mật khẩu mới
     if (password && password.trim() !== "") {
-      updateData.password = password;
+      updateData.password = await hashPassword(password);
     }
 
     const { data, error } = await supabaseAdmin

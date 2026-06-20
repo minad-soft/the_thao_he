@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import type { StaffInsert } from "@/types/database.types";
+import { hashPassword } from "@/lib/auth-utils";
 
 // GET /api/staffs — Lấy danh sách toàn bộ nhân viên
 export async function GET() {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       username: username.trim(),
       phone_number: phone_number?.trim() || null,
       role: role as 'ADMIN' | 'STAFF' | 'ACCOUNTANT',
-      password: password,
+      password: await hashPassword(password),
       status: (status || "ACTIVE") as 'ACTIVE' | 'INACTIVE',
     };
 
