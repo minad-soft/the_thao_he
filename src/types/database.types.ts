@@ -28,6 +28,7 @@ export interface Student {
   id: string;
   full_name: string;
   dob: string | null;
+  gender: string | null;
   class_name: string | null;
   phone_number: string | null;
   school_id: string | null;
@@ -48,6 +49,14 @@ export interface Registration {
   card_reissue_count: number;
   receipt_number: string | null;
   payment_method_id: string | null;
+  amount_paid: number;
+  debt_amount: number;
+  cancelled_at: string | null;
+  refund_amount: number | null;
+  refund_method: string | null;
+  refund_receipt_image: string | null;
+  cancellation_notes: string | null;
+  receipt_images: string[] | null;
   created_at: string;
 }
 
@@ -99,6 +108,16 @@ export interface PaymentMethod {
   is_active: boolean;
   created_at: string;
 }
+
+export interface RegistrationPayment {
+  id: string;
+  registration_id: string;
+  payment_method_id: string | null;
+  amount: number;
+  created_at: string;
+}
+
+export type RegistrationPaymentInsert = Omit<RegistrationPayment, "id" | "created_at">;
 
 export interface Staff {
   id: string;
@@ -206,6 +225,11 @@ export interface Database {
         Row: PaymentMethod;
         Insert: PaymentMethodInsert;
         Update: PaymentMethodUpdate;
+      };
+      registration_payments: {
+        Row: RegistrationPayment;
+        Insert: RegistrationPaymentInsert;
+        Update: Partial<RegistrationPaymentInsert>;
       };
       staffs: {
         Row: Staff;

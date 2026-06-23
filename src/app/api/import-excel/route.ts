@@ -10,6 +10,7 @@ interface ExcelRow {
   ten_truong_khac?: string;
   ghi_chu?: string;
   package_id?: string;
+  gender: string;
 }
 
 interface ValidationError {
@@ -56,6 +57,13 @@ export async function POST(request: NextRequest) {
       ten_truong_khac: String(raw["Tên trường khác"] || raw["ten_truong_khac"] || "").trim() || undefined,
       ghi_chu: String(raw["Ghi chú"] || raw["ghi_chu"] || raw["notes"] || "").trim() || undefined,
       package_id: String(raw["package_id"] || defaultPackageId || "").trim() || undefined,
+      gender: (() => {
+        const g = String(raw["Giới tính"] || raw["gioi_tinh"] || raw["gender"] || "").trim();
+        if (g === "Nam" || g === "Nữ" || g === "Khác") return g;
+        if (g.toLowerCase() === "nam" || g.toLowerCase() === "male" || g.toLowerCase() === "m") return "Nam";
+        if (g.toLowerCase() === "nữ" || g.toLowerCase() === "nu" || g.toLowerCase() === "female" || g.toLowerCase() === "f") return "Nữ";
+        return "Khác"; // Mặc định nếu thiếu
+      })(),
     }));
 
     // ==================== VALIDATION ====================
@@ -132,7 +140,6 @@ export async function POST(request: NextRequest) {
 
     // ==================== BULK INSERT ====================
     let insertedCount = 0;
-
     for (const row of rows) {
       // Insert student
       const { data: student, error: studentErr } = await supabaseAdmin
@@ -140,6 +147,7 @@ export async function POST(request: NextRequest) {
         .insert({
           full_name: row.ho_ten,
           phone_number: row.sdt || null,
+          gender: row.gender,
           school_id: row.school_id || null,
           other_school_name: row.ten_truong_khac || null,
           notes: row.ghi_chu || null,
@@ -154,19 +162,23 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Get sessions_count from package
+      // Get sessions_count and price from package
       let remainingSessions: number | null = null;
+      let packagePrice = 0;
       if (row.package_id) {
         const { data: pkg } = await supabaseAdmin
           .from("pricing_packages")
-          .select("sessions_count")
+          .select("sessions_count, price")
           .eq("id", row.package_id)
           .single();
-        if (pkg) remainingSessions = pkg.sessions_count;
+        if (pkg) {
+          remainingSessions = pkg.sessions_count;
+          packagePrice = pkg.price || 0;
+        }
       }
 
       // Insert registration
-      const { error: regErr } = await supabaseAdmin
+      const { data: reg, error: regErr } = await supabaseAdmin
         .from("registrations")
         .insert({
           student_id: student.id,
@@ -174,13 +186,28 @@ export async function POST(request: NextRequest) {
           card_code: row.ma_the,
           status: "ACTIVE",
           remaining_sessions: remainingSessions,
-        });
+          amount_paid: packagePrice,
+          debt_amount: 0.00,
+        })
+        .select("id")
+        .single();
 
-      if (regErr) {
+      if (regErr || !reg) {
         return NextResponse.json(
-          { error: `Lỗi insert ghi danh "${row.ma_the}": ${regErr.message}` },
+          { error: `Lỗi insert ghi danh "${row.ma_the}": ${regErr?.message || "Unknown"}` },
           { status: 500 }
         );
+      }
+
+      // Tạo bản ghi thanh toán tương ứng cho sạch dữ liệu báo cáo
+      if (packagePrice > 0) {
+        await supabaseAdmin
+          .from("registration_payments")
+          .insert({
+            registration_id: reg.id,
+            payment_method_id: null,
+            amount: packagePrice,
+          });
       }
 
       insertedCount++;

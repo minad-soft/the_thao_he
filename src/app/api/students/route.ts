@@ -18,8 +18,22 @@ export async function GET() {
         receipt_number,
         payment_method_id,
         package_id,
+        amount_paid,
+        debt_amount,
+        cancelled_at,
+        refund_amount,
+        refund_method,
+        refund_receipt_image,
+        cancellation_notes,
+        receipt_images,
         payment_methods (method_name),
-        pricing_packages (package_name, subject, price)
+        pricing_packages (package_name, subject, price),
+        registration_payments (
+          id,
+          payment_method_id,
+          amount,
+          payment_methods (method_name)
+        )
       )
     `)
     .order("created_at", { ascending: false });

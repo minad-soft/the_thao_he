@@ -14,6 +14,7 @@ export default function StudentsPage() {
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterDebtOnly, setFilterDebtOnly] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -40,14 +41,22 @@ export default function StudentsPage() {
     fetchData();
   }, [fetchData]);
 
-  // Filter theo search
+  // Filter theo search và công nợ
   const filteredStudents = students.filter((s) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const matchName = s.full_name?.toLowerCase().includes(term);
-    const matchPhone = s.phone_number?.toLowerCase().includes(term);
-    const matchCode = s.registrations?.[0]?.card_code?.toLowerCase().includes(term);
-    return matchName || matchPhone || matchCode;
+    const reg = s.registrations?.[0];
+    
+    const matchesSearch = (() => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      const matchName = s.full_name?.toLowerCase().includes(term);
+      const matchPhone = s.phone_number?.toLowerCase().includes(term);
+      const matchCode = reg?.card_code?.toLowerCase().includes(term);
+      return matchName || matchPhone || matchCode;
+    })();
+
+    const matchesDebt = filterDebtOnly ? (reg && reg.debt_amount > 0 && reg.status === "ACTIVE") : true;
+
+    return matchesSearch && matchesDebt;
   });
 
   const exportToExcel = () => {
@@ -58,20 +67,27 @@ export default function StudentsPage() {
 
     const dataToExport = filteredStudents.map((s, index) => {
       const reg = s.registrations?.[0];
+      const paymentMethodsStr = reg?.registration_payments && reg.registration_payments.length > 0
+        ? reg.registration_payments.map((p: any) => `${p.payment_methods?.method_name || "Chưa rõ"}: ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(p.amount)}`).join(", ")
+        : reg?.payment_methods?.method_name || "";
+
       return {
         "STT": index + 1,
         "Họ tên": s.full_name,
         "Ngày sinh": s.dob ? new Date(s.dob).toLocaleDateString("vi-VN") : "",
+        "Giới tính": s.gender || "",
         "Lớp": s.class_name || "",
         "Số điện thoại": s.phone_number || "",
         "Trường": s.schools ? s.schools.school_name : s.other_school_name || "",
         "Ghi chú": s.notes || "",
         "Mã thẻ": reg?.card_code || "",
         "Gói học": reg?.pricing_packages?.package_name || "",
-        "Giá (VNĐ)": reg?.pricing_packages?.price || "",
+        "Giá gói (VNĐ)": reg?.pricing_packages?.price || 0,
+        "Đã thanh toán (VNĐ)": reg?.amount_paid || 0,
+        "Công nợ (VNĐ)": reg?.debt_amount || 0,
         "Số buổi": reg?.remaining_sessions || "",
         "Số phiếu thu": reg?.receipt_number || "",
-        "Hình thức thanh toán": reg?.payment_methods?.method_name || "",
+        "Hình thức thanh toán": paymentMethodsStr,
         "Trạng thái": reg?.status === "ACTIVE" ? "Hoạt động" : reg?.status || "",
         "Ngày đăng ký": new Date(s.created_at).toLocaleDateString("vi-VN"),
       };
@@ -92,7 +108,7 @@ export default function StudentsPage() {
             Tổng cộng {students.length} học viên đã đăng ký
           </p>
         </div>
-        <div className="students-header-actions">
+        <div className="students-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div className="students-search">
             <span className="students-search-icon">🔍</span>
             <input
@@ -102,6 +118,20 @@ export default function StudentsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <button
+            className="btn"
+            onClick={() => setFilterDebtOnly(!filterDebtOnly)}
+            style={{
+              border: filterDebtOnly ? "1px solid var(--accent-rose)" : "1px solid var(--border-color)",
+              background: filterDebtOnly ? "rgba(244, 63, 94, 0.15)" : "var(--bg-glass)",
+              color: filterDebtOnly ? "var(--accent-rose)" : "var(--text-primary)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}
+          >
+            🔴 Chỉ học viên nợ phí
+          </button>
           <button className="btn btn-ghost" onClick={exportToExcel} style={{ border: "1px solid var(--border-color)", background: "var(--bg-glass)" }}>
             <span style={{ fontSize: "16px" }}>📤</span> Xuất Excel
           </button>

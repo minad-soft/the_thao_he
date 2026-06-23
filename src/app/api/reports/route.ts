@@ -16,11 +16,12 @@ export async function GET() {
       .from("shifts")
       .select("*", { count: "exact", head: true });
 
-    // Để tính tổng doanh thu, ta lấy tất cả registration cùng với package_id của chúng
+    // Để tính tổng doanh thu, ta lấy tất cả registration cùng với amount_paid và package của chúng
     const { data: registrations } = await supabaseAdmin
       .from("registrations")
       .select(`
         id,
+        amount_paid,
         pricing_packages ( id, price, package_name, subject )
       `);
 
@@ -31,10 +32,10 @@ export async function GET() {
       registrations.forEach((reg) => {
         const pkgData = reg.pricing_packages as any;
         const pkg = Array.isArray(pkgData) ? pkgData[0] : pkgData;
-        if (pkg) {
-          const price = pkg.price || 0;
-          totalRevenue += price;
+        const paidAmount = Number(reg.amount_paid) || 0;
+        totalRevenue += paidAmount;
 
+        if (pkg) {
           if (!revenueByPackage[pkg.id]) {
             revenueByPackage[pkg.id] = {
               package_name: pkg.package_name,
@@ -43,7 +44,7 @@ export async function GET() {
               students: 0,
             };
           }
-          revenueByPackage[pkg.id].revenue += price;
+          revenueByPackage[pkg.id].revenue += paidAmount;
           revenueByPackage[pkg.id].students += 1;
         }
       });
