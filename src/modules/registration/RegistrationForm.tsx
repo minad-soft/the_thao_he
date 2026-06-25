@@ -95,7 +95,7 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
 
   const [isCompressing, setIsCompressing] = useState(false);
 
-  const compressImageToMax60Kb = (file: File): Promise<string> => {
+  const compressImageToMax100Kb = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -103,14 +103,14 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
         const img = new Image();
         img.src = event.target?.result as string;
         img.onload = () => {
-          let quality = 0.6;
+          let quality = 0.75;
           let scale = 1.0;
-          const maxBase64Length = 60 * 1024; // 60KB
+          const maxBase64Length = 100 * 1024; // 100KB
           
           const attemptCompression = (): string => {
             const canvas = document.createElement("canvas");
-            const MAX_WIDTH = 600 * scale;
-            const MAX_HEIGHT = 600 * scale;
+            const MAX_WIDTH = 1000 * scale;
+            const MAX_HEIGHT = 1000 * scale;
             let width = img.width;
             let height = img.height;
 
@@ -139,10 +139,10 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
           
           while (resultBase64.length > maxBase64Length && attempts < 5) {
             attempts++;
-            scale -= 0.15; // Reduce resolution scale
-            quality -= 0.1; // Reduce JPEG quality
-            if (quality < 0.2) quality = 0.2;
-            if (scale < 0.3) scale = 0.3;
+            scale -= 0.1; // Reduce resolution scale
+            quality -= 0.05; // Reduce JPEG quality
+            if (quality < 0.6) quality = 0.6;
+            if (scale < 0.6) scale = 0.6;
             resultBase64 = attemptCompression();
           }
           
@@ -170,7 +170,7 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
     try {
       const compressedImages: string[] = [];
       for (const file of filesToUpload) {
-        const compressedBase64 = await compressImageToMax60Kb(file);
+        const compressedBase64 = await compressImageToMax100Kb(file);
         compressedImages.push(compressedBase64);
       }
       setFormData(prev => ({
