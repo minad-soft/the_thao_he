@@ -199,6 +199,15 @@ export default function StudentsTable({
 
   const compressImageToMax100Kb = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      // Bỏ qua nén nếu file nhỏ hơn 100KB
+      if (file.size <= 100 * 1024) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        return;
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
@@ -211,8 +220,8 @@ export default function StudentsTable({
           
           const attemptCompression = (): string => {
             const canvas = document.createElement("canvas");
-            const MAX_WIDTH = 1000 * scale;
-            const MAX_HEIGHT = 1000 * scale;
+            const MAX_WIDTH = 1500 * scale;
+            const MAX_HEIGHT = 1500 * scale;
             let width = img.width;
             let height = img.height;
 
@@ -241,11 +250,14 @@ export default function StudentsTable({
           
           while (resultBase64.length > maxBase64Length && attempts < 5) {
             attempts++;
-            scale -= 0.1; // Reduce resolution scale
-            quality -= 0.05; // Reduce JPEG quality
-            if (quality < 0.6) quality = 0.6;
-            if (scale < 0.6) scale = 0.6;
+            scale -= 0.05; // Reduce resolution scale gently
+            quality -= 0.05; // Reduce JPEG quality gently
+            if (quality < 0.7) quality = 0.7;
+            if (scale < 0.7) scale = 0.7;
             resultBase64 = attemptCompression();
+            
+            // Nếu đã chạm mức tối thiểu thì không ép mờ thêm nữa
+            if (quality === 0.7 && scale === 0.7) break;
           }
           
           resolve(resultBase64);
@@ -655,6 +667,15 @@ export default function StudentsTable({
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      // Bỏ qua nén nếu file nhỏ hơn 100KB
+      if (file.size <= 100 * 1024) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        return;
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
@@ -662,8 +683,8 @@ export default function StudentsTable({
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 1000;
-          const MAX_HEIGHT = 1000;
+          const MAX_WIDTH = 1500;
+          const MAX_HEIGHT = 1500;
           let width = img.width;
           let height = img.height;
 
