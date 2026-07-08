@@ -51,7 +51,7 @@ export default function ReportsPage() {
     try {
       const [schoolsRes, methodsRes] = await Promise.all([
         fetch("/api/schools"),
-        fetch("/api/settings/payment-methods")
+        fetch("/api/payment-methods")
       ]);
       if (schoolsRes.ok) setSchools(await schoolsRes.json());
       if (methodsRes.ok) setPaymentMethods(await methodsRes.json());
@@ -114,7 +114,7 @@ export default function ReportsPage() {
             <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
               <label className="form-label">Trường học</label>
               <select
-                className="form-input"
+                className="form-select"
                 value={filters.schoolId}
                 onChange={(e) => setFilters({ ...filters, schoolId: e.target.value })}
               >
@@ -127,7 +127,7 @@ export default function ReportsPage() {
             <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
               <label className="form-label">Hình thức TT</label>
               <select
-                className="form-input"
+                className="form-select"
                 value={filters.paymentMethodId}
                 onChange={(e) => setFilters({ ...filters, paymentMethodId: e.target.value })}
               >
