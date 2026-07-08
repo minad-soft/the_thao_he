@@ -20,6 +20,9 @@ export default function ReportsPage() {
   const defaultStart = firstDay.toISOString().split("T")[0];
   const defaultEnd = today.toISOString().split("T")[0];
 
+  const [page, setPage] = useState(1);
+  const limit = 25;
+
   const [filters, setFilters] = useState({
     startDate: defaultStart,
     endDate: defaultEnd,
@@ -27,10 +30,13 @@ export default function ReportsPage() {
     paymentMethodId: "",
   });
 
-  const fetchReports = async (currentFilters: typeof filters) => {
+  const fetchReports = async (currentFilters: typeof filters, currentPage: number = 1) => {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams();
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString()
+      });
       if (currentFilters.startDate) queryParams.append("startDate", currentFilters.startDate);
       if (currentFilters.endDate) queryParams.append("endDate", currentFilters.endDate);
       if (currentFilters.schoolId) queryParams.append("schoolId", currentFilters.schoolId);
@@ -62,12 +68,74 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchFilterOptions();
-    fetchReports(filters);
+    fetchReports(filters, page);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount
 
   const handleFilterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchReports(filters);
+    setPage(1);
+    fetchReports(filters, 1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchReports(filters, newPage);
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        export: "true"
+      });
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+      if (filters.schoolId) queryParams.append("schoolId", filters.schoolId);
+      if (filters.paymentMethodId) queryParams.append("paymentMethodId", filters.paymentMethodId);
+
+      const res = await fetch(`/api/reports?${queryParams.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch export data");
+      
+      const result = await res.json();
+      const allListData = result.listData;
+
+      if (!allListData || allListData.length === 0) {
+        alert("Không có dữ liệu để xuất!");
+        return;
+      }
+
+      const { utils, writeFile } = await import("xlsx");
+      const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString("vi-VN", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+      };
+
+      const exportData = allListData.map((row: any, index: number) => ({
+        "STT": index + 1,
+        "Tên học viên": row.studentName,
+        "Trường học": row.schoolName,
+        "Gói học": row.packageName,
+        "Hình thức thanh toán": row.paymentMethod,
+        "Số tiền (VNĐ)": row.amount,
+        "Ngày đăng ký": formatDate(row.createdAt),
+      }));
+
+      const worksheet = utils.json_to_sheet(exportData);
+      const workbook = utils.book_new();
+      utils.book_append_sheet(workbook, worksheet, "DanhSachGiaoDich");
+
+      const wscols = [
+        { wch: 5 }, { wch: 25 }, { wch: 35 }, { wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 20 }
+      ];
+      worksheet["!cols"] = wscols;
+
+      writeFile(workbook, `BaoCaoGiaoDich_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      console.error("Export Error:", err);
+      alert("Lỗi khi xuất dữ liệu.");
+    }
   };
 
   if (!data && loading) {
@@ -155,7 +223,14 @@ export default function ReportsPage() {
         <CheckinChart data={data.checkinData} />
       </div>
 
-      <FilteredListTable data={data.listData} />
+      <FilteredListTable 
+        data={data.listData} 
+        page={page}
+        totalCount={data.totalListCount}
+        limit={limit}
+        onPageChange={handlePageChange}
+        onExport={handleExportExcel}
+      />
     </div>
   );
 }

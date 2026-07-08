@@ -176,6 +176,14 @@ export async function GET(req: Request) {
       .from("shifts")
       .select("*", { count: "exact", head: true });
 
+    const sortedListData = listData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '25');
+    const exportMode = searchParams.get('export') === 'true';
+
+    const paginatedListData = exportMode ? sortedListData : sortedListData.slice((page - 1) * limit, page * limit);
+
     return NextResponse.json({
       stats: {
         totalStudents: uniqueStudents.size, // Học viên đã lọc
@@ -186,7 +194,8 @@ export async function GET(req: Request) {
       revenueData,
       revenueBySchoolData,
       checkinData,
-      listData: listData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      listData: paginatedListData,
+      totalListCount: sortedListData.length
     });
 
   } catch (error: any) {

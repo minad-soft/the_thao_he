@@ -17,21 +17,21 @@ interface CheckinChartProps {
   }>;
 }
 
-export default function CheckinChart({ data }: CheckinChartProps) {
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="chart-tooltip">
-          <div className="chart-tooltip-title">Ngày {label}</div>
-          <div className="chart-tooltip-value">
-            {payload[0].value} lượt check-in
-          </div>
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="chart-tooltip">
+        <div className="chart-tooltip-title">Ngày {label}</div>
+        <div className="chart-tooltip-value">
+          {payload[0].value} lượt check-in
         </div>
-      );
-    }
-    return null;
-  };
+      </div>
+    );
+  }
+  return null;
+};
 
+export default function CheckinChart({ data }: CheckinChartProps) {
   return (
     <div className="card" style={{ height: '100%' }}>
       <div className="card-header">

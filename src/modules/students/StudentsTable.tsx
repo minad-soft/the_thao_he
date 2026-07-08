@@ -53,6 +53,10 @@ interface StudentsTableProps {
   onRefresh?: () => void;
   onStudentUpdated: (student: Partial<StudentRecord>) => void;
   onStudentDeleted: (id: string) => void;
+  page?: number;
+  totalCount?: number;
+  limit?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export default function StudentsTable({ 
@@ -62,7 +66,11 @@ export default function StudentsTable({
   paymentMethods = [], 
   onRefresh,
   onStudentUpdated, 
-  onStudentDeleted 
+  onStudentDeleted,
+  page = 1,
+  totalCount = 0,
+  limit = 25,
+  onPageChange
 }: StudentsTableProps) {
   // Edit Student Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -882,9 +890,11 @@ export default function StudentsTable({
               <div className="empty-state-text">Chưa có học viên nào. Hãy ghi danh hoặc import Excel.</div>
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
+            <>
+              <div style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
+                <table className="data-table">
+                  <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
+                    <tr>
                   {visibleColumns.full_name && <th>Họ tên</th>}
                   {visibleColumns.dob && <th>Ngày sinh</th>}
                   {visibleColumns.gender && <th>Giới tính</th>}
@@ -1142,9 +1152,39 @@ export default function StudentsTable({
                 })}
               </tbody>
             </table>
+          </div>
+          {onPageChange && totalCount > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "var(--bg-card)", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+              <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+                Hiển thị {Math.min((page - 1) * limit + 1, totalCount)} - {Math.min(page * limit, totalCount)} trong số {totalCount} học viên
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button 
+                  className="btn btn-secondary" 
+                  disabled={page === 1} 
+                  onClick={() => onPageChange(page - 1)}
+                  style={{ padding: "6px 12px", height: "auto" }}
+                >
+                  Trước
+                </button>
+                <span style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", borderRadius: "6px", fontSize: "14px", border: "1px solid var(--border-color)" }}>
+                  Trang {page} / {Math.max(1, Math.ceil(totalCount / limit))}
+                </span>
+                <button 
+                  className="btn btn-secondary" 
+                  disabled={page >= Math.ceil((totalCount || 0) / (limit || 25))}
+                  onClick={() => onPageChange(page + 1)}
+                  style={{ padding: "6px 12px", height: "auto" }}
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
           )}
-        </div>
+          </>
+        )}
       </div>
+    </div>
 
       {/* Modal Sửa học viên */}
       <Modal

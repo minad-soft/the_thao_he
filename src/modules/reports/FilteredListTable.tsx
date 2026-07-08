@@ -12,9 +12,14 @@ interface FilteredListTableProps {
     amount: number;
     createdAt: string;
   }>;
+  page?: number;
+  totalCount?: number;
+  limit?: number;
+  onPageChange?: (page: number) => void;
+  onExport?: () => void;
 }
 
-export default function FilteredListTable({ data }: FilteredListTableProps) {
+export default function FilteredListTable({ data, page = 1, totalCount = 0, limit = 25, onPageChange, onExport }: FilteredListTableProps) {
   const formatPrice = (value: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 
@@ -28,10 +33,19 @@ export default function FilteredListTable({ data }: FilteredListTableProps) {
     });
   };
 
+
   return (
     <div className="card" style={{ marginTop: "24px" }}>
-      <div className="card-header">
-        <h3 className="card-title">📋 Danh sách giao dịch</h3>
+      <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 className="card-title" style={{ margin: 0 }}>📋 Danh sách giao dịch</h3>
+        <button
+          onClick={onExport}
+          className="btn btn-secondary"
+          style={{ height: "36px", padding: "0 16px", display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-primary)", cursor: "pointer", borderRadius: "8px" }}
+          disabled={!data || data.length === 0}
+        >
+          <span>📊</span> Xuất Excel
+        </button>
       </div>
       <div className="card-body" style={{ padding: 0, overflowX: "auto" }}>
         {data.length === 0 ? (
@@ -39,9 +53,11 @@ export default function FilteredListTable({ data }: FilteredListTableProps) {
             Không có giao dịch nào thỏa mãn điều kiện lọc.
           </div>
         ) : (
-          <table className="data-table" style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left" }}>
+          <>
+            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+              <table className="data-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left" }}>
                 <th style={{ padding: "12px 20px", color: "var(--text-muted)", fontSize: "14px" }}>Học viên</th>
                 <th style={{ padding: "12px 20px", color: "var(--text-muted)", fontSize: "14px" }}>Trường</th>
                 <th style={{ padding: "12px 20px", color: "var(--text-muted)", fontSize: "14px" }}>Gói học</th>
@@ -71,6 +87,36 @@ export default function FilteredListTable({ data }: FilteredListTableProps) {
               ))}
             </tbody>
           </table>
+          </div>
+          {onPageChange && totalCount > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "var(--bg-card)", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+              <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+                Hiển thị {Math.min((page - 1) * limit + 1, totalCount)} - {Math.min(page * limit, totalCount)} trong số {totalCount} giao dịch
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button 
+                  className="btn btn-secondary" 
+                  disabled={page === 1} 
+                  onClick={() => onPageChange(page - 1)}
+                  style={{ padding: "6px 12px", height: "auto" }}
+                >
+                  Trước
+                </button>
+                <span style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", borderRadius: "6px", fontSize: "14px", border: "1px solid var(--border-color)" }}>
+                  Trang {page} / {Math.max(1, Math.ceil(totalCount / limit))}
+                </span>
+                <button 
+                  className="btn btn-secondary" 
+                  disabled={page >= Math.ceil(totalCount / limit)} 
+                  onClick={() => onPageChange(page + 1)}
+                  style={{ padding: "6px 12px", height: "auto" }}
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

@@ -16,13 +16,30 @@ interface RevenueBySchoolChartProps {
   data: Array<any>;
 }
 
-const COLORS = [
-  "var(--accent-emerald)",
-  "var(--accent-blue)",
-  "var(--accent-purple)",
-  "#f59e0b",
-  "#ef4444",
-];
+const COLORS = ['var(--accent-emerald)', 'var(--accent-indigo)', 'var(--accent-rose)', 'var(--accent-amber)', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
+    return (
+      <div className="chart-tooltip">
+        <div className="chart-tooltip-title">{label}</div>
+        {payload.map((entry: any, index: number) => {
+          return (
+            <div key={index} className="chart-tooltip-sub" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: 10, height: 10, backgroundColor: entry.color, borderRadius: '50%' }}></div>
+              {entry.name}: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(entry.value)}
+            </div>
+          );
+        })}
+        <div className="chart-tooltip-value" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          Tổng cộng: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(total)}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function RevenueBySchoolChart({ data }: RevenueBySchoolChartProps) {
   const formatPrice = (value: number) =>
@@ -41,29 +58,7 @@ export default function RevenueBySchoolChart({ data }: RevenueBySchoolChartProps
     return Array.from(methods);
   }, [data]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      let total = 0;
-      return (
-        <div className="chart-tooltip">
-          <div className="chart-tooltip-title">{label}</div>
-          {payload.map((entry: any, index: number) => {
-            total += entry.value;
-            return (
-              <div key={index} className="chart-tooltip-sub" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: 10, height: 10, backgroundColor: entry.color, borderRadius: '50%' }}></div>
-                {entry.name}: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(entry.value)}
-              </div>
-            );
-          })}
-          <div className="chart-tooltip-value" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            Tổng cộng: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(total)}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+
 
   return (
     <div className="card" style={{ height: '100%' }}>

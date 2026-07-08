@@ -19,26 +19,28 @@ interface RevenueChartProps {
   }>;
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="chart-tooltip">
+        <div className="chart-tooltip-title">{label}</div>
+        <div className="chart-tooltip-value">
+          Doanh thu: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(payload[0].value)}
+        </div>
+        <div className="chart-tooltip-sub">
+          Học viên: {payload[0].payload.students}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function RevenueChart({ data }: RevenueChartProps) {
   const formatPrice = (value: number) =>
     new Intl.NumberFormat("vi-VN", { notation: "compact", compactDisplay: "short" }).format(value);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="chart-tooltip">
-          <div className="chart-tooltip-title">{label}</div>
-          <div className="chart-tooltip-value">
-            Doanh thu: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(payload[0].value)}
-          </div>
-          <div className="chart-tooltip-sub">
-            Học viên: {payload[0].payload.students}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+
 
   return (
     <div className="card" style={{ height: '100%' }}>
