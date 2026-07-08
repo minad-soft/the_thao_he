@@ -20,7 +20,8 @@ export async function GET(req: Request) {
         payment_method_id,
         pricing_packages ( id, price, package_name, subject ),
         students!inner ( id, full_name, school_id, schools ( id, school_name ) ),
-        payment_methods ( id, method_name )
+        payment_methods ( id, method_name ),
+        registration_payments ( id, amount, payment_method_id, payment_methods ( id, method_name ) )
       `);
 
     if (startDate) {
@@ -35,9 +36,7 @@ export async function GET(req: Request) {
     if (schoolId) {
       registrationsQuery = registrationsQuery.eq("students.school_id", schoolId);
     }
-    if (paymentMethodId) {
-      registrationsQuery = registrationsQuery.eq("payment_method_id", paymentMethodId);
-    }
+    // We filter paymentMethodId in JS to support split payments correctly.
 
     const { data: registrations, error: regError } = await registrationsQuery;
 
@@ -60,32 +59,70 @@ export async function GET(req: Request) {
         const student = Array.isArray(studentData) ? studentData[0] : studentData;
         const schoolData = student?.schools;
         const school = Array.isArray(schoolData) ? schoolData[0] : schoolData;
-        const paymentMethodData = reg.payment_methods;
-        const paymentMethod = Array.isArray(paymentMethodData) ? paymentMethodData[0] : paymentMethodData;
         
-        const paidAmount = Number(reg.amount_paid) || 0;
         const schoolName = school?.school_name || 'Khác';
-        const methodName = paymentMethod?.method_name || 'Chưa xác định';
         const studentName = student?.full_name || 'Không rõ';
 
-        totalRevenue += paidAmount;
-        if (student?.id) {
-          uniqueStudents.add(student.id);
+        let payments = [];
+        if (reg.registration_payments && reg.registration_payments.length > 0) {
+          payments = reg.registration_payments.map((p: any) => ({
+            id: p.id,
+            amount: Number(p.amount) || 0,
+            payment_method_id: p.payment_method_id,
+            method_name: p.payment_methods?.method_name || 'Chưa xác định'
+          }));
+        } else {
+          const paymentMethodData = reg.payment_methods;
+          const paymentMethod = Array.isArray(paymentMethodData) ? paymentMethodData[0] : paymentMethodData;
+          payments = [{
+            id: reg.id,
+            amount: Number(reg.amount_paid) || 0,
+            payment_method_id: reg.payment_method_id,
+            method_name: paymentMethod?.method_name || 'Chưa xác định'
+          }];
         }
 
-        // List data
-        listData.push({
-          id: reg.id,
-          studentName,
-          schoolName,
-          packageName: pkg?.package_name || 'N/A',
-          paymentMethod: methodName,
-          amount: paidAmount,
-          createdAt: reg.created_at,
+        let regTotalRevenueForPackage = 0;
+        let regIncludedInCount = false;
+
+        payments.forEach((payment: any) => {
+          if (paymentMethodId && payment.payment_method_id !== paymentMethodId) {
+            return;
+          }
+
+          const paidAmount = payment.amount;
+          const methodName = payment.method_name;
+
+          totalRevenue += paidAmount;
+          regTotalRevenueForPackage += paidAmount;
+
+          if (!regIncludedInCount) {
+            if (student?.id) {
+              uniqueStudents.add(student.id);
+            }
+            regIncludedInCount = true;
+          }
+
+          listData.push({
+            id: `${reg.id}-${payment.id}`,
+            studentName,
+            schoolName,
+            packageName: pkg?.package_name || 'N/A',
+            paymentMethod: methodName,
+            amount: paidAmount,
+            createdAt: reg.created_at,
+          });
+
+          if (!revenueBySchoolMap[schoolName]) {
+            revenueBySchoolMap[schoolName] = { schoolName };
+          }
+          if (!revenueBySchoolMap[schoolName][methodName]) {
+            revenueBySchoolMap[schoolName][methodName] = 0;
+          }
+          revenueBySchoolMap[schoolName][methodName] += paidAmount;
         });
 
-        // Revenue by Package
-        if (pkg) {
+        if (pkg && regTotalRevenueForPackage > 0) {
           if (!revenueByPackage[pkg.id]) {
             revenueByPackage[pkg.id] = {
               package_name: pkg.package_name,
@@ -94,18 +131,9 @@ export async function GET(req: Request) {
               students: 0,
             };
           }
-          revenueByPackage[pkg.id].revenue += paidAmount;
+          revenueByPackage[pkg.id].revenue += regTotalRevenueForPackage;
           revenueByPackage[pkg.id].students += 1;
         }
-
-        // Revenue by School and Payment Method
-        if (!revenueBySchoolMap[schoolName]) {
-          revenueBySchoolMap[schoolName] = { schoolName };
-        }
-        if (!revenueBySchoolMap[schoolName][methodName]) {
-          revenueBySchoolMap[schoolName][methodName] = 0;
-        }
-        revenueBySchoolMap[schoolName][methodName] += paidAmount;
       });
     }
 
