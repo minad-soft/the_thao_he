@@ -167,6 +167,8 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   .main-content {
     margin-left: 0 !important;
     padding: 20px 16px;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   .sidebar {
     transform: translateX(-100%);
@@ -209,7 +211,7 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
     box-shadow: none;
   }
   .data-table-mobile-card thead {
-    display: none;
+    display: none !important;
   }
   .data-table-mobile-card tbody,
   .data-table-mobile-card tr,
@@ -227,7 +229,7 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   }
   .data-table-mobile-card td {
     text-align: right;
-    padding-left: 45%;
+    padding: 10px 16px 10px 45% !important;
     position: relative;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     white-space: normal;
@@ -277,6 +279,8 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 8px;
+    width: 100%;
+    max-width: calc(100vw - 32px);
   }
   .chart-inner-min-width {
     min-width: 600px; /* Force minimum width to prevent squishing */
