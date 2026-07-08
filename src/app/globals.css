@@ -203,22 +203,84 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
     padding: 16px 16px;
   }
 
-  /* Table Mobile Responsiveness */
-  .data-table {
-    white-space: nowrap;
+  /* Table Mobile Responsiveness - Convert to Cards */
+  .data-table-mobile-card {
+    border: none;
+    box-shadow: none;
+  }
+  .data-table-mobile-card thead {
+    display: none;
+  }
+  .data-table-mobile-card tbody,
+  .data-table-mobile-card tr,
+  .data-table-mobile-card td {
+    display: block;
+    width: 100%;
+  }
+  .data-table-mobile-card tr {
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  .data-table-mobile-card td {
+    text-align: right;
+    padding-left: 45%;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: normal;
+    min-height: 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .data-table-mobile-card td:last-child {
+    border-bottom: none;
+  }
+  .data-table-mobile-card td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 16px;
+    width: 40%;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    height: 100%;
+    top: 0;
   }
   
-  .data-table th:first-child,
-  .data-table td:first-child {
+  /* Fallback horizontal scroll for normal tables */
+  .data-table:not(.data-table-mobile-card) {
+    white-space: nowrap;
+  }
+  .data-table:not(.data-table-mobile-card) th:first-child,
+  .data-table:not(.data-table-mobile-card) td:first-child {
     position: sticky;
     left: 0;
     z-index: 10;
     background: var(--bg-card);
     box-shadow: 4px 0 8px rgba(0,0,0,0.1);
   }
-
-  .data-table tbody tr:hover td:first-child {
+  .data-table:not(.data-table-mobile-card) tbody tr:hover td:first-child {
     background: var(--bg-card-hover);
+  }
+
+  /* Responsive Charts */
+  .recharts-responsive-container {
+    min-height: 300px !important;
+  }
+  .chart-wrapper-mobile-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+  }
+  .chart-inner-min-width {
+    min-width: 600px; /* Force minimum width to prevent squishing */
+    height: 100%;
   }
 
   /* Optimize Modals for Mobile */
@@ -237,7 +299,7 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   }
 
   /* Form Grid collapses on mobile */
-  .form-grid-2 {
+  .form-grid-2, .form-row {
     grid-template-columns: 1fr;
     gap: 12px;
   }

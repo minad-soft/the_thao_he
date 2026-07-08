@@ -55,7 +55,7 @@ export default function FilteredListTable({ data, page = 1, totalCount = 0, limi
         ) : (
           <>
             <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-              <table className="data-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table className="data-table data-table-mobile-card" style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
                   <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left" }}>
                 <th style={{ padding: "12px 20px", color: "var(--text-muted)", fontSize: "14px" }}>Học viên</th>
@@ -69,18 +69,18 @@ export default function FilteredListTable({ data, page = 1, totalCount = 0, limi
             <tbody>
               {data.map((row) => (
                 <tr key={row.id} style={{ borderBottom: "1px solid var(--border-color)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: "14px" }}>{row.studentName}</td>
-                  <td style={{ padding: "12px 20px", fontSize: "14px" }}>{row.schoolName}</td>
-                  <td style={{ padding: "12px 20px", fontSize: "14px" }}>{row.packageName}</td>
-                  <td style={{ padding: "12px 20px", fontSize: "14px" }}>
+                  <td data-label="Học viên" style={{ padding: "12px 20px", fontSize: "14px" }}>{row.studentName}</td>
+                  <td data-label="Trường" style={{ padding: "12px 20px", fontSize: "14px" }}>{row.schoolName}</td>
+                  <td data-label="Gói học" style={{ padding: "12px 20px", fontSize: "14px" }}>{row.packageName}</td>
+                  <td data-label="Hình thức TT" style={{ padding: "12px 20px", fontSize: "14px" }}>
                     <span className="badge" style={{ background: "rgba(255,255,255,0.1)", padding: "4px 8px", borderRadius: "4px" }}>
                       {row.paymentMethod}
                     </span>
                   </td>
-                  <td style={{ padding: "12px 20px", fontSize: "14px", textAlign: "right", color: "var(--accent-emerald)" }}>
+                  <td data-label="Số tiền" style={{ padding: "12px 20px", fontSize: "14px", textAlign: "right", color: "var(--accent-emerald)" }}>
                     {formatPrice(row.amount)}
                   </td>
-                  <td style={{ padding: "12px 20px", fontSize: "14px", color: "var(--text-muted)" }}>
+                  <td data-label="Ngày đăng ký" style={{ padding: "12px 20px", fontSize: "14px", color: "var(--text-muted)" }}>
                     {formatDate(row.createdAt)}
                   </td>
                 </tr>

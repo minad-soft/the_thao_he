@@ -69,42 +69,47 @@ export default function RevenueBySchoolChart({ data }: RevenueBySchoolChartProps
         {data.length === 0 ? (
           <div className="empty-state">Chưa có dữ liệu doanh thu</div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis 
-                dataKey="schoolName" 
-                stroke="var(--text-muted)" 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="var(--text-muted)" 
-                fontSize={12}
-                tickFormatter={formatPrice}
-                tickLine={false}
-                axisLine={false}
-                width={60}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-muted)' }} />
-              {paymentMethods.map((method, index) => (
-                <Bar 
-                  key={method}
-                  dataKey={method} 
-                  stackId="a" 
-                  fill={COLORS[index % COLORS.length]} 
-                  maxBarSize={60}
-                  radius={
-                    index === paymentMethods.length - 1 
-                      ? [4, 4, 0, 0] // Top rounded for the last item in stack
-                      : [0, 0, 0, 0]
-                  }
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-wrapper-mobile-scroll" style={{ height: "100%" }}>
+            <div className="chart-inner-min-width">
+              <ResponsiveContainer width="100%" height="100%" className="recharts-responsive-container">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis 
+                    dataKey="schoolName" 
+                    stroke="var(--text-muted)" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => value.length > 15 ? value.substring(0, 15) + '...' : value}
+                  />
+                  <YAxis 
+                    stroke="var(--text-muted)" 
+                    fontSize={12}
+                    tickFormatter={(value) => formatPrice(value)}
+                    tickLine={false}
+                    axisLine={false}
+                    width={80}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-muted)' }} />
+                  {paymentMethods.map((method, index) => (
+                    <Bar 
+                      key={method}
+                      dataKey={method} 
+                      stackId="a" 
+                      fill={COLORS[index % COLORS.length]} 
+                      maxBarSize={60}
+                      radius={
+                        index === paymentMethods.length - 1 
+                          ? [4, 4, 0, 0] // Top rounded for the last item in stack
+                          : [0, 0, 0, 0]
+                      }
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell
 } from "recharts";
 
 interface RevenueChartProps {
@@ -51,33 +52,42 @@ export default function RevenueChart({ data }: RevenueChartProps) {
         {data.length === 0 ? (
           <div className="empty-state">Chưa có dữ liệu doanh thu</div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis 
-                dataKey="package_name" 
-                stroke="var(--text-muted)" 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="var(--text-muted)" 
-                fontSize={12}
-                tickFormatter={formatPrice}
-                tickLine={false}
-                axisLine={false}
-                width={60}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Bar 
-                dataKey="revenue" 
-                fill="var(--accent-emerald)" 
-                radius={[4, 4, 0, 0]} 
-                maxBarSize={60}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-wrapper-mobile-scroll" style={{ height: "100%" }}>
+            <div className="chart-inner-min-width">
+              <ResponsiveContainer width="100%" height="100%" className="recharts-responsive-container">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis 
+                    dataKey="package_name" 
+                    stroke="var(--text-muted)" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => value.length > 15 ? value.substring(0, 15) + '...' : value}
+                  />
+                  <YAxis 
+                    stroke="var(--text-muted)" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => formatPrice(value)}
+                    width={80}
+                  />
+                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="revenue" 
+                    fill="var(--accent-indigo)" 
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={60}
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={`var(--accent-indigo)`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </div>
     </div>

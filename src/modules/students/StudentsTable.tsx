@@ -892,7 +892,7 @@ export default function StudentsTable({
           ) : (
             <>
               <div style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
-                <table className="data-table">
+                <table className="data-table data-table-mobile-card">
                   <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
                     <tr>
                   {visibleColumns.full_name && <th>Họ tên</th>}
@@ -922,7 +922,7 @@ export default function StudentsTable({
                   return (
                     <tr key={student.id}>
                       {visibleColumns.full_name && (
-                        <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                        <td data-label="Họ tên" style={{ color: "var(--text-primary)", fontWeight: 500 }}>
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(student)}
@@ -944,10 +944,10 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.dob && (
-                        <td>{student.dob ? new Date(student.dob).toLocaleDateString("vi-VN") : "—"}</td>
+                        <td data-label="Ngày sinh">{student.dob ? new Date(student.dob).toLocaleDateString("vi-VN") : "—"}</td>
                       )}
                       {visibleColumns.gender && (
-                        <td>
+                        <td data-label="Giới tính">
                           {student.gender ? (
                             <span className={`badge ${student.gender === "Nam" ? "badge-indigo" : student.gender === "Nữ" ? "badge-rose" : "badge-slate"}`}>
                               {student.gender}
@@ -955,10 +955,10 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.class_name && <td>{student.class_name || "—"}</td>}
-                      {visibleColumns.phone_number && <td>{student.phone_number || "—"}</td>}
+                      {visibleColumns.class_name && <td data-label="Lớp">{student.class_name || "—"}</td>}
+                      {visibleColumns.phone_number && <td data-label="SĐT">{student.phone_number || "—"}</td>}
                       {visibleColumns.school && (
-                        <td>
+                        <td data-label="Trường">
                           {student.schools ? (
                             <span className="badge badge-indigo">
                               [{student.schools.school_code}] {student.schools.school_name}
@@ -970,9 +970,9 @@ export default function StudentsTable({
                           )}
                         </td>
                       )}
-                      {visibleColumns.notes && <td>{student.notes || "—"}</td>}
+                      {visibleColumns.notes && <td data-label="Ghi chú">{student.notes || "—"}</td>}
                       {visibleColumns.card_code && (
-                        <td>
+                        <td data-label="Mã thẻ">
                           {reg ? (
                             <span style={{
                               fontFamily: "'Courier New', monospace",
@@ -990,7 +990,7 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.package && (
-                        <td>
+                        <td data-label="Gói học">
                           {reg?.pricing_packages ? (
                             <>
                               <div style={{ fontSize: 13, color: "var(--text-primary)" }}>
@@ -1004,14 +1004,14 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.price && (
-                        <td>
+                        <td data-label="Giá gói">
                           {reg?.pricing_packages ? (
                             <span className="price">{formatPrice(reg.pricing_packages.price)}</span>
                           ) : "—"}
                         </td>
                       )}
                       {visibleColumns.amount_paid && (
-                        <td>
+                        <td data-label="Đã đóng">
                           {reg ? (
                             <span className="price" style={{ color: "var(--accent-emerald-light)" }}>
                               {formatPrice(reg.amount_paid)}
@@ -1020,7 +1020,7 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.debt_amount && (
-                        <td>
+                        <td data-label="Công nợ">
                           {reg ? (
                             <span style={{ 
                               color: reg.debt_amount > 0 ? "var(--accent-rose)" : "var(--text-muted)", 
@@ -1032,7 +1032,7 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.remaining && (
-                        <td>
+                        <td data-label="Số buổi">
                           {reg ? (
                             <span style={{ fontWeight: 600, color: "var(--accent-emerald-light)" }}>
                               {reg.remaining_sessions} buổi
@@ -1041,10 +1041,10 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.receipt_number && (
-                        <td>{reg?.receipt_number || "—"}</td>
+                        <td data-label="Số phiếu thu">{reg?.receipt_number || "—"}</td>
                       )}
                       {visibleColumns.payment_method && (
-                        <td>
+                        <td data-label="Thanh toán">
                           {reg?.registration_payments && reg.registration_payments.length > 0 ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                               {reg.registration_payments.map((p, pIdx) => (
@@ -1072,7 +1072,7 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.card_issued && (
-                        <td>
+                        <td data-label="Cấp thẻ">
                           {reg ? (
                             !reg.is_card_issued ? (
                               <span className="badge" style={{ background: "var(--bg-glass)", color: "var(--text-secondary)" }}>
@@ -1092,7 +1092,7 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.status && (
-                        <td>
+                        <td data-label="Trạng thái">
                           {reg ? (
                             <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
                               <span className={`status-dot ${reg.status === "ACTIVE" ? "active" : ""}`}></span>
@@ -1102,11 +1102,11 @@ export default function StudentsTable({
                         </td>
                       )}
                       {visibleColumns.created_at && (
-                        <td style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                        <td data-label="Ngày ĐK" style={{ fontSize: 13, color: "var(--text-muted)" }}>
                           {new Date(student.created_at).toLocaleDateString("vi-VN")}
                         </td>
                       )}
-                      <td style={{ textAlign: "right", display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap", minWidth: 260 }}>
+                      <td data-label="Thao tác" style={{ textAlign: "right", display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap", minWidth: 260 }}>
                         {reg && reg.status === "ACTIVE" && reg.debt_amount > 0 && (
                           <button 
                             className="btn btn-primary btn-sm"
