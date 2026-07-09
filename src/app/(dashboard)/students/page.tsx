@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import StudentsTable from "@/modules/students/StudentsTable";
 import ExcelUploader from "@/modules/students/ExcelUploader";
+import { parsePreference } from "@/lib/preference-utils";
 import "./students.css";
 
 export default function StudentsPage() {
@@ -13,10 +14,12 @@ export default function StudentsPage() {
   const [packages, setPackages] = useState<any[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [preferenceStats, setPreferenceStats] = useState<Record<string, number>>({});
   
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterDebtOnly, setFilterDebtOnly] = useState(false);
+  const [activeListFilter, setActiveListFilter] = useState<string | null>(null);
   
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -33,7 +36,7 @@ export default function StudentsPage() {
   // Reset page to 1 when search or filter changes
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, filterDebtOnly]);
+  }, [debouncedSearchTerm, filterDebtOnly, activeListFilter]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -42,7 +45,8 @@ export default function StudentsPage() {
         page: page.toString(),
         limit: limit.toString(),
         search: debouncedSearchTerm,
-        debtOnly: filterDebtOnly.toString()
+        debtOnly: filterDebtOnly.toString(),
+        listFilter: activeListFilter || ""
       });
 
       const [studentsRes, schoolsRes, packagesRes, paymentMethodsRes] = await Promise.all([
@@ -56,6 +60,7 @@ export default function StudentsPage() {
         const result = await studentsRes.json();
         setStudents(result.data || []);
         setTotalCount(result.totalCount || 0);
+        if (result.preferenceStats) setPreferenceStats(result.preferenceStats);
       }
       if (schoolsRes.ok) setSchools(await schoolsRes.json());
       if (packagesRes.ok) setPackages(await packagesRes.json());
@@ -65,7 +70,7 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, debouncedSearchTerm, filterDebtOnly]);
+  }, [page, limit, debouncedSearchTerm, filterDebtOnly, activeListFilter]);
 
   useEffect(() => {
     fetchData();
@@ -76,6 +81,7 @@ export default function StudentsPage() {
       const queryParams = new URLSearchParams({
         search: debouncedSearchTerm,
         debtOnly: filterDebtOnly.toString(),
+        listFilter: activeListFilter || "",
         export: "true"
       });
       const res = await fetch(`/api/students?${queryParams.toString()}`);
@@ -94,6 +100,26 @@ export default function StudentsPage() {
           ? reg.registration_payments.map((p: any) => `${p.payment_methods?.method_name || "Chưa rõ"}: ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(p.amount)}`).join(", ")
           : reg?.payment_methods?.method_name || "";
 
+        const prefs = parsePreference(s.sports_preference);
+        
+        if (activeListFilter && activeListFilter !== 'DA_CHON' && activeListFilter !== 'CHUA_CHON') {
+          const activeSubjects = [
+             prefs.onBoi ? "Ôn bơi" : null,
+             prefs.hocBoi ? "Học bơi" : null,
+             prefs.bongRo ? "Bóng rổ" : null,
+             prefs.cauLong ? "Cầu lông" : null
+          ].filter(Boolean).join(", ");
+          
+          return {
+            "STT": index + 1,
+            "HỌ VÀ TÊN": s.full_name,
+            "SỐ ĐIỆN THOẠI": s.phone_number || "",
+            "TRƯỜNG": s.schools ? s.schools.school_name : s.other_school_name || "",
+            "MÃ THẺ": reg?.card_code || "",
+            "MÔN": activeSubjects
+          };
+        }
+
         return {
           "STT": index + 1,
           "Họ tên": s.full_name,
@@ -103,6 +129,11 @@ export default function StudentsPage() {
           "Số điện thoại": s.phone_number || "",
           "Trường": s.schools ? s.schools.school_name : s.other_school_name || "",
           "Ghi chú": s.notes || "",
+          "Trạng thái NV": prefs.hasPreference ? "Đã chọn" : "Chưa chọn",
+          "Ôn bơi": prefs.onBoi ? "✓" : "",
+          "Học bơi": prefs.hocBoi ? "✓" : "",
+          "Bóng rổ": prefs.bongRo ? "✓" : "",
+          "Cầu lông": prefs.cauLong ? "✓" : "",
           "Mã thẻ": reg?.card_code || "",
           "Gói học": reg?.pricing_packages?.package_name || "",
           "Giá gói (VNĐ)": reg?.pricing_packages?.price || 0,
@@ -128,12 +159,69 @@ export default function StudentsPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1 className="page-title">Danh sách Học viên</h1>
           <p className="page-subtitle">
             Tổng cộng {totalCount} học viên đã đăng ký
           </p>
+          {Object.keys(preferenceStats).length > 0 && (
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "12px" }}>
+              {Object.entries(preferenceStats).map(([pref, count]) => (
+                <span key={pref} className="badge badge-emerald" style={{ padding: "8px 12px", fontSize: "13px" }}>
+                  {pref}: <strong>{count}</strong>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ flexBasis: "100%", margin: "8px 0" }}>
+          <div style={{ background: "var(--bg-glass)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <strong style={{ fontSize: "14px", color: "var(--text-secondary)" }}>LỌC DANH SÁCH LỚP:</strong>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'TEST_BOI' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'TEST_BOI' ? null : 'TEST_BOI')}
+              style={{ border: activeListFilter === 'TEST_BOI' ? 'none' : '1px solid var(--border-color)' }}
+            >
+              🏊 DANH SÁCH KIỂM TRA BƠI
+            </button>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'HOC_BOI' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'HOC_BOI' ? null : 'HOC_BOI')}
+              style={{ border: activeListFilter === 'HOC_BOI' ? 'none' : '1px solid var(--border-color)' }}
+            >
+              🏊 DANH SÁCH HỌC BƠI
+            </button>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'BONG_RO' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'BONG_RO' ? null : 'BONG_RO')}
+              style={{ border: activeListFilter === 'BONG_RO' ? 'none' : '1px solid var(--border-color)' }}
+            >
+              🏀 DANH SÁCH BÓNG RỔ
+            </button>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'CAU_LONG' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'CAU_LONG' ? null : 'CAU_LONG')}
+              style={{ border: activeListFilter === 'CAU_LONG' ? 'none' : '1px solid var(--border-color)' }}
+            >
+              🏸 DANH SÁCH CẦU LÔNG
+            </button>
+            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 8px' }}></div>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'DA_CHON' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'DA_CHON' ? null : 'DA_CHON')}
+              style={{ border: activeListFilter === 'DA_CHON' ? 'none' : '1px solid var(--border-color)', color: 'var(--accent-emerald)' }}
+            >
+              ✓ ĐÃ CHỌN NV
+            </button>
+            <button 
+              className={`btn btn-sm ${activeListFilter === 'CHUA_CHON' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setActiveListFilter(activeListFilter === 'CHUA_CHON' ? null : 'CHUA_CHON')}
+              style={{ border: activeListFilter === 'CHUA_CHON' ? 'none' : '1px solid var(--border-color)', color: 'var(--accent-rose)' }}
+            >
+              ✗ CHƯA CHỌN NV
+            </button>
+          </div>
         </div>
         <div className="students-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div className="students-search">
@@ -183,6 +271,7 @@ export default function StudentsPage() {
           totalCount={totalCount}
           limit={limit}
           onPageChange={setPage}
+          activeFilter={activeListFilter}
         />
       )}
     </div>

@@ -17,6 +17,8 @@ interface Schedule {
 export default function SubjectSelectionPage() {
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(false);
+  const [existingPreference, setExistingPreference] = useState<string | null>(null);
+  const [loadingMe, setLoadingMe] = useState(true);
   const [settings, setSettings] = useState<{ schedules: Record<string, Schedule[]>, locations: Record<string, string> }>({ schedules: {}, locations: {} });
   
   // Modal state
@@ -40,6 +42,20 @@ export default function SubjectSelectionPage() {
         }
       })
       .catch(err => console.error("Error fetching settings:", err));
+
+    // Fetch me
+    fetch("/api/student-portal/me")
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error && data.sports_preference) {
+          setExistingPreference(data.sports_preference);
+        }
+        setLoadingMe(false);
+      })
+      .catch(err => {
+        console.error("Error fetching user info:", err);
+        setLoadingMe(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -190,7 +206,30 @@ export default function SubjectSelectionPage() {
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'top center'
       }}>
-        {!isSaved ? (
+        {loadingMe ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <span className="loading loading-spinner loading-lg"></span>
+            <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Đang tải dữ liệu...</p>
+          </div>
+        ) : existingPreference ? (
+          <div className="card" style={{ padding: '48px 32px', textAlign: 'center', borderColor: 'var(--accent-indigo)', background: 'rgba(99, 102, 241, 0.05)' }}>
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gradient-primary)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 24px', boxShadow: 'var(--shadow-glow-indigo)'
+            }}>ℹ️</div>
+            <h2 className="page-title" style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--text-primary)' }}>
+              Bạn đã hoàn tất chọn môn
+            </h2>
+            <div style={{ padding: '24px', background: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
+              <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--accent-indigo)', margin: 0 }}>
+                {existingPreference}
+              </p>
+            </div>
+            <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              Nếu có yêu cầu thay đổi vui lòng liên hệ <strong style={{ color: 'var(--accent-rose)' }}>0909932627</strong> (cô Trang).
+            </p>
+          </div>
+        ) : !isSaved ? (
           <div className="card" style={{ padding: '32px' }}>
             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
               <h2 className="page-title" style={{ fontSize: '24px', marginBottom: '8px' }}>

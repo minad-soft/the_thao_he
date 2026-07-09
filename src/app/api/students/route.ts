@@ -9,6 +9,7 @@ export async function GET(req: Request) {
   const search = searchParams.get('search') || '';
   const debtOnly = searchParams.get('debtOnly') === 'true';
   const exportMode = searchParams.get('export') === 'true';
+  const listFilter = searchParams.get('listFilter') || '';
 
   let studentQuery = supabaseAdmin
     .from("students")
@@ -96,6 +97,21 @@ export async function GET(req: Request) {
     studentQuery = studentQuery.in('id', matchingStudentIds);
   }
 
+  // Áp dụng bộ lọc danh sách lớp (listFilter)
+  if (listFilter === 'TEST_BOI') {
+    studentQuery = studentQuery.or('sports_preference.ilike.%ôn bơi%,sports_preference.ilike.%học bơi%');
+  } else if (listFilter === 'HOC_BOI') {
+    studentQuery = studentQuery.ilike('sports_preference', '%học bơi%');
+  } else if (listFilter === 'BONG_RO') {
+    studentQuery = studentQuery.ilike('sports_preference', '%bóng rổ%');
+  } else if (listFilter === 'CAU_LONG') {
+    studentQuery = studentQuery.ilike('sports_preference', '%cầu lông%');
+  } else if (listFilter === 'DA_CHON') {
+    studentQuery = studentQuery.not('sports_preference', 'is', null).neq('sports_preference', '');
+  } else if (listFilter === 'CHUA_CHON') {
+    studentQuery = studentQuery.or('sports_preference.is.null,sports_preference.eq.');
+  }
+
   studentQuery = studentQuery.order("created_at", { ascending: false });
 
   // Phân trang
@@ -111,5 +127,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data, totalCount: count || 0 });
+  // Thống kê nguyện vọng
+  const { data: allPreferences } = await supabaseAdmin
+    .from('students')
+    .select('sports_preference')
+    .not('sports_preference', 'is', null);
+
+  const preferenceStats = (allPreferences || []).reduce((acc: any, curr) => {
+    const pref = curr.sports_preference;
+    if (pref) {
+      acc[pref] = (acc[pref] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  return NextResponse.json({ data, totalCount: count || 0, preferenceStats });
 }

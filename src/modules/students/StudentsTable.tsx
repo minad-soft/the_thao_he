@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Modal from "@/components/Modal";
 import type { PaymentMethod } from "@/types/database.types";
+import { parsePreference } from "@/lib/preference-utils";
 
 interface StudentRecord {
   id: string;
@@ -14,6 +15,7 @@ interface StudentRecord {
   school_id: string | null;
   other_school_name: string | null;
   notes: string | null;
+  sports_preference?: string | null;
   created_at: string;
   schools: { school_name: string; school_code: string } | null;
   registrations: Array<{
@@ -57,6 +59,7 @@ interface StudentsTableProps {
   totalCount?: number;
   limit?: number;
   onPageChange?: (page: number) => void;
+  activeFilter?: string | null;
 }
 
 export default function StudentsTable({ 
@@ -70,10 +73,18 @@ export default function StudentsTable({
   page = 1,
   totalCount = 0,
   limit = 25,
-  onPageChange
+  onPageChange,
+  activeFilter
 }: StudentsTableProps) {
   // Edit Student Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveActionMenu(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ 
@@ -144,6 +155,19 @@ export default function StudentsTable({
   const [detailsStudent, setDetailsStudent] = useState<StudentRecord | null>(null);
   const [isDetailsImageUploading, setIsDetailsImageUploading] = useState(false);
 
+  // Register Subject Modal States (Đăng ký thêm môn)
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+  const [registerStudentId, setRegisterStudentId] = useState<string | null>(null);
+  const [registerStudentName, setRegisterStudentName] = useState("");
+  const [registerFormData, setRegisterFormData] = useState({
+    package_id: "",
+    receipt_number: "",
+    amount_paid: "",
+    payments: [] as Array<{ payment_method_id: string; amount: string }>,
+  });
+
   // Bill Viewer Light-box States (Phóng to hóa đơn hoàn tiền)
   const [isBillViewerOpen, setIsBillViewerOpen] = useState(false);
   const [billViewerUrl, setBillViewerUrl] = useState("");
@@ -157,6 +181,12 @@ export default function StudentsTable({
     { id: "phone_number", label: "SĐT" },
     { id: "school", label: "Trường" },
     { id: "notes", label: "Ghi chú" },
+    { id: "sports_preference", label: "Nguyện vọng (Gốc)" },
+    { id: "pref_status", label: "TT Nguyện vọng" },
+    { id: "pref_on_boi", label: "Ôn bơi" },
+    { id: "pref_hoc_boi", label: "Học bơi" },
+    { id: "pref_bong_ro", label: "Bóng rổ" },
+    { id: "pref_cau_long", label: "Cầu lông" },
     { id: "card_code", label: "Mã thẻ" },
     { id: "package", label: "Gói học" },
     { id: "price", label: "Giá gói" },
@@ -178,6 +208,12 @@ export default function StudentsTable({
     phone_number: true,
     school: true,
     notes: false,
+    sports_preference: true,
+    pref_status: true,
+    pref_on_boi: false,
+    pref_hoc_boi: false,
+    pref_bong_ro: false,
+    pref_cau_long: false,
     card_code: true,
     package: true,
     price: true,
@@ -195,6 +231,36 @@ export default function StudentsTable({
   const toggleColumn = (id: string) => {
     setVisibleColumns(prev => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const actualVisibleColumns = useMemo(() => {
+    if (!activeFilter || activeFilter === 'DA_CHON' || activeFilter === 'CHUA_CHON') return visibleColumns;
+    return {
+      full_name: true,
+      dob: false,
+      gender: false,
+      class_name: false,
+      phone_number: true,
+      school: true,
+      notes: false,
+      sports_preference: !activeFilter,
+      pref_status: false,
+      pref_on_boi: activeFilter === 'TEST_BOI',
+      pref_hoc_boi: activeFilter === 'TEST_BOI' || activeFilter === 'HOC_BOI',
+      pref_bong_ro: activeFilter === 'BONG_RO',
+      pref_cau_long: activeFilter === 'CAU_LONG',
+      card_code: true,
+      package: false,
+      price: false,
+      amount_paid: false,
+      debt_amount: false,
+      remaining: false,
+      receipt_number: false,
+      payment_method: false,
+      card_issued: false,
+      status: false,
+      created_at: false
+    };
+  }, [visibleColumns, activeFilter]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -389,6 +455,12 @@ export default function StudentsTable({
     handleOpenPayDebt(detailsStudent);
   };
 
+  const handleRegisterFromDetails = () => {
+    if (!detailsStudent) return;
+    setIsDetailsModalOpen(false);
+    handleOpenRegister(detailsStudent);
+  };
+
   const handleDeleteFromDetails = () => {
     if (!detailsStudent) return;
     setIsDetailsModalOpen(false);
@@ -430,6 +502,19 @@ export default function StudentsTable({
     });
     setError("");
     setIsModalOpen(true);
+  };
+
+  const handleOpenRegister = (student: StudentRecord) => {
+    setRegisterStudentId(student.id);
+    setRegisterStudentName(student.full_name);
+    setRegisterFormData({
+      package_id: "",
+      receipt_number: "",
+      amount_paid: "",
+      payments: [{ payment_method_id: "", amount: "" }],
+    });
+    setRegisterError("");
+    setIsRegisterModalOpen(true);
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -792,6 +877,57 @@ export default function StudentsTable({
     }
   };
 
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerStudentId) return;
+
+    if (!registerFormData.package_id || !registerFormData.receipt_number || registerFormData.amount_paid === "") {
+      setRegisterError("Vui lòng điền đầy đủ gói học, số phiếu thu và số tiền đóng.");
+      return;
+    }
+
+    const totalAmount = Number(registerFormData.amount_paid);
+    if (isNaN(totalAmount) || totalAmount < 0) {
+      setRegisterError("Số tiền đóng không hợp lệ.");
+      return;
+    }
+
+    if (totalAmount > 0) {
+      const sumPayments = registerFormData.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      if (Math.abs(sumPayments - totalAmount) > 0.01) {
+        setRegisterError("Tổng số tiền phân bổ phải bằng số tiền thực tế.");
+        return;
+      }
+    }
+
+    setIsRegisterSubmitting(true);
+    setRegisterError("");
+
+    try {
+      const res = await fetch("/api/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: registerStudentId,
+          package_id: registerFormData.package_id,
+          receipt_number: registerFormData.receipt_number,
+          amount_paid: totalAmount,
+          payments: totalAmount > 0 ? registerFormData.payments : [],
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi ghi danh thêm môn");
+
+      setIsRegisterModalOpen(false);
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      setRegisterError(err.message);
+    } finally {
+      setIsRegisterSubmitting(false);
+    }
+  };
+
   const handleIssueCard = async (regId: string, studentId: string) => {
     if (!confirm("Xác nhận đã phát thẻ nhựa cho học viên?")) return;
     try {
@@ -895,25 +1031,31 @@ export default function StudentsTable({
                 <table className="data-table data-table-mobile-card">
                   <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
                     <tr>
-                  {visibleColumns.full_name && <th>Họ tên</th>}
-                  {visibleColumns.dob && <th>Ngày sinh</th>}
-                  {visibleColumns.gender && <th>Giới tính</th>}
-                  {visibleColumns.class_name && <th>Lớp</th>}
-                  {visibleColumns.phone_number && <th>SĐT</th>}
-                  {visibleColumns.school && <th>Trường</th>}
-                  {visibleColumns.notes && <th>Ghi chú</th>}
-                  {visibleColumns.card_code && <th>Mã thẻ</th>}
-                  {visibleColumns.package && <th>Gói học</th>}
-                  {visibleColumns.price && <th>Giá gói</th>}
-                  {visibleColumns.amount_paid && <th>Đã đóng</th>}
-                  {visibleColumns.debt_amount && <th>Công nợ</th>}
-                  {visibleColumns.remaining && <th>Số buổi</th>}
-                  {visibleColumns.receipt_number && <th>Số phiếu thu</th>}
-                  {visibleColumns.payment_method && <th>Thanh toán</th>}
-                  {visibleColumns.card_issued && <th>Cấp thẻ</th>}
-                  {visibleColumns.status && <th>Trạng thái</th>}
-                  {visibleColumns.created_at && <th>Ngày ĐK</th>}
-                  <th style={{ textAlign: "right" }}>Thao tác</th>
+                  {actualVisibleColumns.full_name && <th>Họ tên</th>}
+                  {actualVisibleColumns.dob && <th>Ngày sinh</th>}
+                  {actualVisibleColumns.gender && <th>Giới tính</th>}
+                  {actualVisibleColumns.class_name && <th>Lớp</th>}
+                  {actualVisibleColumns.phone_number && <th>SĐT</th>}
+                  {actualVisibleColumns.school && <th>Trường</th>}
+                  {actualVisibleColumns.notes && <th>Ghi chú</th>}
+                  {actualVisibleColumns.sports_preference && <th>Nguyện vọng (Gốc)</th>}
+                  {actualVisibleColumns.pref_status && <th>TT Nguyện vọng</th>}
+                  {actualVisibleColumns.pref_on_boi && <th>Ôn bơi</th>}
+                  {actualVisibleColumns.pref_hoc_boi && <th>Học bơi</th>}
+                  {actualVisibleColumns.pref_bong_ro && <th>Bóng rổ</th>}
+                  {actualVisibleColumns.pref_cau_long && <th>Cầu lông</th>}
+                  {actualVisibleColumns.card_code && <th>Mã thẻ</th>}
+                  {actualVisibleColumns.package && <th>Gói học</th>}
+                  {actualVisibleColumns.price && <th>Giá gói</th>}
+                  {actualVisibleColumns.amount_paid && <th>Đã đóng</th>}
+                  {actualVisibleColumns.debt_amount && <th>Công nợ</th>}
+                  {actualVisibleColumns.remaining && <th>Số buổi</th>}
+                  {actualVisibleColumns.receipt_number && <th>Số phiếu thu</th>}
+                  {actualVisibleColumns.payment_method && <th>Thanh toán</th>}
+                  {actualVisibleColumns.card_issued && <th>Cấp thẻ</th>}
+                  {actualVisibleColumns.status && <th>Trạng thái</th>}
+                  {actualVisibleColumns.created_at && <th>Ngày ĐK</th>}
+                  
                 </tr>
               </thead>
               <tbody>
@@ -921,7 +1063,7 @@ export default function StudentsTable({
                   const reg = student.registrations?.[0];
                   return (
                     <tr key={student.id}>
-                      {visibleColumns.full_name && (
+                      {actualVisibleColumns.full_name && (
                         <td data-label="Họ tên" style={{ color: "var(--text-primary)", fontWeight: 500 }}>
                           <button
                             type="button"
@@ -943,10 +1085,10 @@ export default function StudentsTable({
                           </button>
                         </td>
                       )}
-                      {visibleColumns.dob && (
+                      {actualVisibleColumns.dob && (
                         <td data-label="Ngày sinh">{student.dob ? new Date(student.dob).toLocaleDateString("vi-VN") : "—"}</td>
                       )}
-                      {visibleColumns.gender && (
+                      {actualVisibleColumns.gender && (
                         <td data-label="Giới tính">
                           {student.gender ? (
                             <span className={`badge ${student.gender === "Nam" ? "badge-indigo" : student.gender === "Nữ" ? "badge-rose" : "badge-slate"}`}>
@@ -955,9 +1097,9 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.class_name && <td data-label="Lớp">{student.class_name || "—"}</td>}
-                      {visibleColumns.phone_number && <td data-label="SĐT">{student.phone_number || "—"}</td>}
-                      {visibleColumns.school && (
+                      {actualVisibleColumns.class_name && <td data-label="Lớp">{student.class_name || "—"}</td>}
+                      {actualVisibleColumns.phone_number && <td data-label="SĐT">{student.phone_number || "—"}</td>}
+                      {actualVisibleColumns.school && (
                         <td data-label="Trường">
                           {student.schools ? (
                             <span className="badge badge-indigo">
@@ -970,8 +1112,51 @@ export default function StudentsTable({
                           )}
                         </td>
                       )}
-                      {visibleColumns.notes && <td data-label="Ghi chú">{student.notes || "—"}</td>}
-                      {visibleColumns.card_code && (
+                      {actualVisibleColumns.notes && <td data-label="Ghi chú">{student.notes || "—"}</td>}
+                      {actualVisibleColumns.sports_preference && (
+                        <td data-label="Nguyện vọng (Gốc)">
+                          {student.sports_preference ? (
+                            <span className="badge badge-emerald">{student.sports_preference}</span>
+                          ) : "—"}
+                        </td>
+                      )}
+                      {(() => {
+                        const prefs = parsePreference(student.sports_preference);
+                        return (
+                          <>
+                            {actualVisibleColumns.pref_status && (
+                              <td data-label="TT Nguyện vọng">
+                                {prefs.hasPreference ? (
+                                  <span className="badge badge-emerald">Đã chọn</span>
+                                ) : (
+                                  <span className="badge badge-rose">Chưa chọn</span>
+                                )}
+                              </td>
+                            )}
+                            {actualVisibleColumns.pref_on_boi && (
+                              <td data-label="Ôn bơi">
+                                {prefs.onBoi ? <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>✓</span> : "-"}
+                              </td>
+                            )}
+                            {actualVisibleColumns.pref_hoc_boi && (
+                              <td data-label="Học bơi">
+                                {prefs.hocBoi ? <span style={{ color: 'var(--accent-emerald)', fontWeight: 'bold' }}>✓</span> : "-"}
+                              </td>
+                            )}
+                            {actualVisibleColumns.pref_bong_ro && (
+                              <td data-label="Bóng rổ">
+                                {prefs.bongRo ? <span style={{ color: 'var(--accent-amber)', fontWeight: 'bold' }}>✓</span> : "-"}
+                              </td>
+                            )}
+                            {actualVisibleColumns.pref_cau_long && (
+                              <td data-label="Cầu lông">
+                                {prefs.cauLong ? <span style={{ color: 'var(--accent-indigo)', fontWeight: 'bold' }}>✓</span> : "-"}
+                              </td>
+                            )}
+                          </>
+                        );
+                      })()}
+                      {actualVisibleColumns.card_code && (
                         <td data-label="Mã thẻ">
                           {reg ? (
                             <span style={{
@@ -989,7 +1174,7 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.package && (
+                      {actualVisibleColumns.package && (
                         <td data-label="Gói học">
                           {reg?.pricing_packages ? (
                             <>
@@ -1003,14 +1188,14 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.price && (
+                      {actualVisibleColumns.price && (
                         <td data-label="Giá gói">
                           {reg?.pricing_packages ? (
                             <span className="price">{formatPrice(reg.pricing_packages.price)}</span>
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.amount_paid && (
+                      {actualVisibleColumns.amount_paid && (
                         <td data-label="Đã đóng">
                           {reg ? (
                             <span className="price" style={{ color: "var(--accent-emerald-light)" }}>
@@ -1019,7 +1204,7 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.debt_amount && (
+                      {actualVisibleColumns.debt_amount && (
                         <td data-label="Công nợ">
                           {reg ? (
                             <span style={{ 
@@ -1031,7 +1216,7 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.remaining && (
+                      {actualVisibleColumns.remaining && (
                         <td data-label="Số buổi">
                           {reg ? (
                             <span style={{ fontWeight: 600, color: "var(--accent-emerald-light)" }}>
@@ -1040,10 +1225,10 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.receipt_number && (
+                      {actualVisibleColumns.receipt_number && (
                         <td data-label="Số phiếu thu">{reg?.receipt_number || "—"}</td>
                       )}
-                      {visibleColumns.payment_method && (
+                      {actualVisibleColumns.payment_method && (
                         <td data-label="Thanh toán">
                           {reg?.registration_payments && reg.registration_payments.length > 0 ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -1071,7 +1256,7 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.card_issued && (
+                      {actualVisibleColumns.card_issued && (
                         <td data-label="Cấp thẻ">
                           {reg ? (
                             !reg.is_card_issued ? (
@@ -1091,7 +1276,7 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.status && (
+                      {actualVisibleColumns.status && (
                         <td data-label="Trạng thái">
                           {reg ? (
                             <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
@@ -1101,52 +1286,12 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {visibleColumns.created_at && (
+                      {actualVisibleColumns.created_at && (
                         <td data-label="Ngày ĐK" style={{ fontSize: 13, color: "var(--text-muted)" }}>
                           {new Date(student.created_at).toLocaleDateString("vi-VN")}
                         </td>
                       )}
-                      <td data-label="Thao tác" style={{ textAlign: "right", display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap", minWidth: 260 }}>
-                        {reg && reg.status === "ACTIVE" && reg.debt_amount > 0 && (
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            style={{ 
-                              background: "rgba(16, 185, 129, 0.15)", 
-                              color: "var(--accent-emerald-light)", 
-                              border: "1px solid rgba(16, 185, 129, 0.3)",
-                              padding: "4px 8px",
-                              fontSize: 12
-                            }} 
-                            onClick={() => handleOpenPayDebt(student)}
-                          >
-                            TT công nợ
-                          </button>
-                        )}
-                        {reg && reg.status === "ACTIVE" && (
-                          <button 
-                            className="btn btn-ghost btn-sm"
-                            style={{ 
-                              color: "var(--accent-rose)",
-                              border: "1px solid rgba(244, 63, 94, 0.2)",
-                              padding: "4px 8px",
-                              fontSize: 12
-                            }} 
-                            onClick={() => handleOpenCancel(student)}
-                          >
-                            Hủy ĐK
-                          </button>
-                        )}
-                        <button className="btn btn-ghost btn-sm" onClick={() => handleOpenEdit(student)}>
-                          Sửa
-                        </button>
-                        <button 
-                          className="btn btn-ghost btn-sm" 
-                          style={{ color: "var(--accent-rose)" }}
-                          onClick={() => handleDelete(student.id, student.full_name)}
-                        >
-                          Xóa
-                        </button>
-                      </td>
+                      
                     </tr>
                   );
                 })}
@@ -1958,6 +2103,23 @@ export default function StudentsTable({
                   </div>
 
                   <div style={{ fontSize: "13px" }}>
+                    <span style={{ color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>Nguyện vọng:</span>
+                    {(() => {
+                      const prefs = parsePreference(detailsStudent.sports_preference);
+                      if (!prefs.hasPreference) return <span style={{ color: "var(--text-muted)" }}>Chưa chọn</span>;
+                      
+                      return (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {prefs.onBoi && <span className="badge badge-emerald">Ôn bơi</span>}
+                          {prefs.hocBoi && <span className="badge badge-emerald">Học bơi</span>}
+                          {prefs.bongRo && <span className="badge badge-amber">Bóng rổ</span>}
+                          {prefs.cauLong && <span className="badge badge-indigo">Cầu lông</span>}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  <div style={{ fontSize: "13px" }}>
                     <span style={{ color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>Ghi chú:</span>
                     <div style={{ background: "var(--bg-glass-hover)", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", color: "var(--text-secondary)", minHeight: "40px", border: "1px solid var(--border-color)", whiteSpace: "pre-wrap" }}>
                       {detailsStudent.notes || "Không có ghi chú"}
@@ -2185,6 +2347,150 @@ export default function StudentsTable({
             />
           ) : (
             <span style={{ color: "var(--text-muted)" }}>Không tìm thấy ảnh chứng từ</span>
+          )}
+        </div>
+      </Modal>
+
+      {/* Modal Đăng ký thêm môn */}
+      <Modal
+        isOpen={isRegisterModalOpen}
+        onClose={() => { setIsRegisterModalOpen(false); setRegisterError(""); }}
+        title={`Đăng ký môn học mới - ${registerStudentName}`}
+        footer={
+          <>
+            <button className="btn btn-ghost" onClick={() => setIsRegisterModalOpen(false)}>
+              Hủy
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleRegisterSubmit} 
+              disabled={isRegisterSubmitting}
+            >
+              {isRegisterSubmitting ? <span className="loading loading-spinner"></span> : "Ghi danh"}
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {registerError && (
+            <div style={{ background: "rgba(244, 63, 94, 0.1)", color: "var(--accent-rose)", padding: "12px", borderRadius: "8px", fontSize: "14px" }}>
+              {registerError}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Gói học *</label>
+            <select 
+              className="form-control" 
+              value={registerFormData.package_id}
+              onChange={(e) => {
+                const pkgId = e.target.value;
+                const pkg = packages.find(p => p.id === pkgId);
+                setRegisterFormData({ 
+                  ...registerFormData, 
+                  package_id: pkgId,
+                  amount_paid: pkg ? pkg.price.toString() : "",
+                  payments: pkg ? [{ payment_method_id: paymentMethods[0]?.id || "", amount: pkg.price.toString() }] : []
+                });
+              }}
+            >
+              <option value="">-- Chọn gói học --</option>
+              {packages.map(pkg => (
+                <option key={pkg.id} value={pkg.id}>
+                  {pkg.package_name} ({pkg.subject}) - {new Intl.NumberFormat('vi-VN').format(pkg.price)}đ
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Số phiếu thu *</label>
+            <input 
+              className="form-control" 
+              value={registerFormData.receipt_number} 
+              onChange={e => setRegisterFormData({ ...registerFormData, receipt_number: e.target.value })} 
+              placeholder="Nhập số PT..." 
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Số tiền đóng thực tế *</label>
+            <input 
+              type="number" 
+              className="form-control" 
+              value={registerFormData.amount_paid} 
+              onChange={(e) => {
+                const newAmount = e.target.value;
+                setRegisterFormData({
+                  ...registerFormData,
+                  amount_paid: newAmount,
+                  payments: registerFormData.payments.map((p, i) => i === 0 ? { ...p, amount: newAmount } : p)
+                });
+              }} 
+            />
+          </div>
+
+          {Number(registerFormData.amount_paid) > 0 && (
+            <div style={{ marginTop: "8px", border: "1px solid var(--border-color)", padding: "12px", borderRadius: "8px", background: "var(--bg-primary)" }}>
+              <h5 style={{ margin: "0 0 12px 0", fontSize: "13px", color: "var(--text-secondary)" }}>Phương thức thanh toán *</h5>
+              {registerFormData.payments.map((payment, index) => (
+                <div key={index} style={{ display: "flex", gap: "10px", marginBottom: "8px", alignItems: "center" }}>
+                  <select 
+                    className="form-control" 
+                    value={payment.payment_method_id}
+                    onChange={e => {
+                      const newPayments = [...registerFormData.payments];
+                      newPayments[index].payment_method_id = e.target.value;
+                      setRegisterFormData({ ...registerFormData, payments: newPayments });
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    <option value="">-- Chọn PTTT --</option>
+                    {paymentMethods.map(pm => (
+                      <option key={pm.id} value={pm.id}>{pm.method_name}</option>
+                    ))}
+                  </select>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    value={payment.amount}
+                    onChange={e => {
+                      const newPayments = [...registerFormData.payments];
+                      newPayments[index].amount = e.target.value;
+                      setRegisterFormData({ ...registerFormData, payments: newPayments });
+                    }}
+                    style={{ flex: 1 }}
+                    placeholder="Số tiền"
+                  />
+                  {registerFormData.payments.length > 1 && (
+                    <button 
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{ color: "var(--accent-rose)", padding: "0 8px" }}
+                      onClick={() => {
+                        const newPayments = registerFormData.payments.filter((_, i) => i !== index);
+                        setRegisterFormData({ ...registerFormData, payments: newPayments });
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button 
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: "12px", marginTop: "4px", color: "var(--accent-blue)" }}
+                onClick={() => {
+                  setRegisterFormData({
+                    ...registerFormData,
+                    payments: [...registerFormData.payments, { payment_method_id: "", amount: "" }]
+                  });
+                }}
+              >
+                + Thêm PTTT
+              </button>
+            </div>
           )}
         </div>
       </Modal>
