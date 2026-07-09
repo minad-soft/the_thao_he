@@ -10,6 +10,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/auth/login") ||
     pathname.startsWith("/api/auth/logout") ||
+    pathname.startsWith("/dang-ky-mon") ||
+    pathname.startsWith("/api/student-portal") ||
     pathname.includes("favicon.ico") ||
     pathname.includes(".")
   ) {
@@ -80,13 +82,15 @@ export async function middleware(request: NextRequest) {
 }
 
 // Chỉ chạy middleware trên các đường dẫn cụ thể
+// Chỉ chạy middleware trên các đường dẫn cụ thể
 export const config = {
   matcher: [
     /*
      * Khớp với tất cả các request ngoại trừ:
-     * - api/auth/login, api/auth/logout
+     * - api/auth/login, api/auth/logout, api/student-portal
+     * - dang-ky-mon
      * - các file tĩnh (_next/static, _next/image, favicon.ico)
      */
-    "/((?!api/auth/login|api/auth/logout|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth/login|api/auth/logout|api/student-portal|dang-ky-mon|_next/static|_next/image|favicon.ico).*)",
   ],
 };
