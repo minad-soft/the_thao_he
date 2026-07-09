@@ -93,7 +93,7 @@ export default function StudentLoginPage() {
               id="fullName"
               type="text"
               required
-              placeholder="VD: TRƯƠNG MẠNH KHANG"
+              placeholder="VD: NGUYỄN MẠNH KHANG"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="form-input"
