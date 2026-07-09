@@ -295,9 +295,19 @@ export default function SubjectSelectionPage() {
               Bạn đã hoàn tất chọn môn
             </h2>
             <div style={{ padding: '24px', background: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
-              <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--accent-indigo)', margin: 0 }}>
+              <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--accent-indigo)', margin: 0, marginBottom: '16px' }}>
                 {existingPreference}
               </p>
+              <button
+                className="btn btn-outline"
+                style={{ color: 'var(--accent-indigo)', borderColor: 'var(--accent-indigo)', width: 'auto', display: 'inline-block' }}
+                onClick={() => {
+                  setSuccessContent(getPreferenceDetails(existingPreference));
+                  setShowSuccessModal(true);
+                }}
+              >
+                📋 Xem thông báo chi tiết
+              </button>
             </div>
             <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
               Nếu có yêu cầu thay đổi vui lòng liên hệ <strong style={{ color: 'var(--accent-rose)' }}>0909932627</strong> (cô Trang).
