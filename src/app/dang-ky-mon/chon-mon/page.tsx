@@ -106,7 +106,18 @@ export default function SubjectSelectionPage() {
   const formatSchedules = (subjectName: string) => {
     const schedules = settings.schedules[subjectName];
     if (!schedules || schedules.length === 0) return "Chưa có lịch";
-    return schedules.map(s => `${s.name} (${s.daysOfWeek.join(", ")} | ${s.startTime.slice(0,5)} - ${s.endTime.slice(0,5)})`).join("; ");
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '2px' }}>
+        {schedules.map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <span style={{ color: 'var(--accent-emerald)', fontSize: '14px', marginTop: '2px' }}>•</span>
+            <span style={{ lineHeight: 1.5 }}>
+              <span style={{ fontWeight: 600 }}>{s.name}</span> ({s.daysOfWeek.join(", ")} | {s.startTime.slice(0,5)} - {s.endTime.slice(0,5)})
+            </span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const getLocation = (subjectName: string) => {
@@ -117,7 +128,7 @@ export default function SubjectSelectionPage() {
     if (!pref) return null;
     
     let title = "";
-    let schedules: {label: string, value: string}[] = [];
+    let schedules: {label: string, value: React.ReactNode}[] = [];
     let location = "";
     const note = "Lịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.";
     const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
