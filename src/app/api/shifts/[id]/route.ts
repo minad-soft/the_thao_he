@@ -8,12 +8,14 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { shift_name, start_time, end_time, subject, subject_id, days_of_week } = body;
+  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week } = body;
 
   const { data, error } = await supabaseAdmin
     .from("shifts")
     .update({
       shift_name,
+      start_date,
+      end_date,
       start_time,
       end_time,
       subject,

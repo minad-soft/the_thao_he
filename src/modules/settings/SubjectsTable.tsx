@@ -16,6 +16,7 @@ const iconOptions = ["⚽", "🏊", "🏀", "🏸", "🎾", "🏐", "🤸", "�
 const defaultForm = {
   subject_name: "",
   description: "",
+  location: "",
   icon: "🏀",
 };
 
@@ -43,6 +44,7 @@ export default function SubjectsTable({
     setFormData({
       subject_name: subject.subject_name,
       description: subject.description ?? "",
+      location: subject.location ?? "",
       icon: subject.icon,
     });
     setError("");
@@ -82,6 +84,7 @@ export default function SubjectsTable({
         body: JSON.stringify({
           subject_name: formData.subject_name,
           description: formData.description || null,
+          location: formData.location || null,
           icon: formData.icon,
         }),
       });
@@ -126,6 +129,7 @@ export default function SubjectsTable({
                 <tr>
                   <th style={{ width: "60px" }}>Icon</th>
                   <th>Tên môn</th>
+                  <th>Địa điểm</th>
                   <th>Mô tả</th>
                   <th>Ngày tạo</th>
                   <th style={{ textAlign: "right" }}>Thao tác</th>
@@ -137,6 +141,11 @@ export default function SubjectsTable({
                     <td style={{ fontSize: 24, textAlign: "center" }}>{subject.icon}</td>
                     <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
                       {subject.subject_name}
+                    </td>
+                    <td>
+                      {subject.location || (
+                        <span style={{ color: "var(--text-muted)" }}>—</span>
+                      )}
                     </td>
                     <td>
                       {subject.description || (
@@ -200,6 +209,15 @@ export default function SubjectsTable({
             placeholder="Mô tả ngắn về môn học"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Địa điểm</label>
+          <input
+            className="form-input"
+            placeholder="Địa điểm học của môn này"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           />
         </div>
         <div className="form-group">

@@ -14,6 +14,8 @@ interface ShiftsTableProps {
 
 const defaultForm = {
   shift_name: "",
+  start_date: "",
+  end_date: "",
   start_time: "",
   end_time: "",
   subject: "",
@@ -41,6 +43,8 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
     setEditingId(shift.id);
     setFormData({
       shift_name: shift.shift_name,
+      start_date: shift.start_date || "",
+      end_date: shift.end_date || "",
       start_time: shift.start_time,
       end_time: shift.end_time,
       subject: shift.subject,
@@ -79,7 +83,7 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
 
   const handleSubmit = async () => {
     setError("");
-    if (!formData.shift_name || !formData.start_time || !formData.end_time || !formData.subject_id) {
+    if (!formData.shift_name || !formData.start_time || !formData.end_time || !formData.subject_id || !formData.start_date || !formData.end_date) {
       setError("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
@@ -98,6 +102,8 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shift_name: formData.shift_name,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
           start_time: formData.start_time,
           end_time: formData.end_time,
           subject: subjectName,
@@ -145,7 +151,8 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
               <thead>
                 <tr>
                   <th>Tên ca</th>
-                  <th>Thời gian</th>
+                  <th>Thời gian (Giờ)</th>
+                  <th>Thời gian (Ngày)</th>
                   <th>Môn học</th>
                   <th>Ngày học</th>
                   <th style={{ textAlign: "right" }}>Thao tác</th>
@@ -160,6 +167,12 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
                     <td>
                       <span style={{ fontFamily: "monospace", fontSize: 13 }}>
                         {shift.start_time.slice(0, 5)} - {shift.end_time.slice(0, 5)}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: 13 }}>
+                        {shift.start_date ? new Date(shift.start_date).toLocaleDateString("vi-VN") : "—"} <br/>
+                        {shift.end_date ? new Date(shift.end_date).toLocaleDateString("vi-VN") : "—"}
                       </span>
                     </td>
                     <td>
@@ -222,6 +235,26 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
             value={formData.shift_name}
             onChange={(e) => setFormData({ ...formData, shift_name: e.target.value })}
           />
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Ngày bắt đầu *</label>
+            <input
+              className="form-input"
+              type="date"
+              value={formData.start_date}
+              onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Ngày kết thúc *</label>
+            <input
+              className="form-input"
+              type="date"
+              value={formData.end_date}
+              onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+            />
+          </div>
         </div>
         <div className="form-row">
           <div className="form-group">

@@ -19,17 +19,19 @@ export async function GET() {
 // POST /api/shifts — Thêm ca học mới
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { shift_name, start_time, end_time, subject, subject_id, days_of_week } = body;
+  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week } = body;
 
-  if (!shift_name || !start_time || !end_time || !subject) {
+  if (!shift_name || !start_time || !end_time || !subject || !start_date || !end_date) {
     return NextResponse.json(
-      { error: "Thiếu trường bắt buộc: shift_name, start_time, end_time, subject" },
+      { error: "Thiếu trường bắt buộc: shift_name, start_date, end_date, start_time, end_time, subject" },
       { status: 400 }
     );
   }
 
   const insertData: ShiftInsert = {
     shift_name,
+    start_date: start_date || null,
+    end_date: end_date || null,
     start_time,
     end_time,
     subject,

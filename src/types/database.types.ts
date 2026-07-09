@@ -34,6 +34,7 @@ export interface Student {
   school_id: string | null;
   other_school_name: string | null;
   notes: string | null;
+  sports_preference: string | null;
   created_at: string;
 }
 
@@ -63,6 +64,8 @@ export interface Registration {
 export interface Shift {
   id: string;
   shift_name: string;
+  start_date: string | null; // DATE format: YYYY-MM-DD
+  end_date: string | null;   // DATE format: YYYY-MM-DD
   start_time: string; // TIME format: HH:MM
   end_time: string;   // TIME format: HH:MM
   subject: string;
@@ -87,6 +90,7 @@ export interface Subject {
   subject_name: string;
   description: string | null;
   icon: string;
+  location: string | null;
   created_at: string;
 }
 

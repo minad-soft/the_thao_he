@@ -19,7 +19,7 @@ export async function GET() {
 // POST /api/subjects — Thêm môn học mới
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { subject_name, description, icon } = body;
+  const { subject_name, description, icon, location } = body;
 
   if (!subject_name) {
     return NextResponse.json(
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
   const insertData: SubjectInsert = {
     subject_name,
     description: description ?? null,
+    location: location ?? null,
     icon: icon ?? "🏀",
   };
 
