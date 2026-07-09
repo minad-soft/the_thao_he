@@ -26,7 +26,7 @@ export default function SubjectSelectionPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [confirmContent, setConfirmContent] = useState("");
-  const [successContent, setSuccessContent] = useState("");
+  const [successContent, setSuccessContent] = useState<React.ReactNode>(null);
   const [selectedPreference, setSelectedPreference] = useState("");
   
   // Option 1 Sub-selection
@@ -49,6 +49,7 @@ export default function SubjectSelectionPage() {
       .then(data => {
         if (!data.error && data.sports_preference) {
           setExistingPreference(data.sports_preference);
+          setIsSaved(true);
         }
         setLoadingMe(false);
       })
@@ -112,53 +113,126 @@ export default function SubjectSelectionPage() {
     return settings.locations[subjectName] || "Chưa cập nhật địa điểm";
   };
 
+  const getPreferenceDetails = (pref: string) => {
+    if (!pref) return null;
+    
+    let title = "";
+    let schedules: {label: string, value: string}[] = [];
+    let location = "";
+    const note = "Lịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.";
+    const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
+
+    if (pref === "Ôn bơi - học bóng rổ - Kiểm tra bơi") {
+      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC BÓNG RỔ, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
+      schedules = [
+        { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
+        { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
+      ];
+      location = getLocation("Bóng rổ");
+    } else if (pref === "Ôn bơi - học cầu lông - Kiểm tra bơi") {
+      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC CẦU LÔNG, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
+      schedules = [
+        { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
+        { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
+      ];
+      location = getLocation("Cầu lông");
+    } else if (pref === "HỌC BƠI - Kiểm tra bơi") {
+      title = "Cảm ơn Quý khách đã chọn 19 BUỔI HỌC BƠI, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
+      schedules = [
+        { label: "Lịch học bơi", value: formatSchedules("Học bơi") }
+      ];
+      location = getLocation("Học bơi");
+    } else if (pref === "HỌC BÓNG RỔ") {
+      title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC BÓNG RỔ.";
+      schedules = [
+        { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
+      ];
+      location = getLocation("Bóng rổ");
+    } else if (pref === "HỌC CẦU LÔNG") {
+      title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC CẦU LÔNG.";
+      schedules = [
+        { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
+      ];
+      location = getLocation("Cầu lông");
+    } else {
+      return <div>Nguyện vọng của bạn: {pref}</div>;
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+        <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text-primary)' }}>
+          {title}
+        </div>
+        
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              {schedules.map((s, i) => (
+                <tr key={i} style={{ borderBottom: i < schedules.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                  <td style={{ padding: '8px 0', width: '140px', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{s.label}:</td>
+                  <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{s.value}</td>
+                </tr>
+              ))}
+              <tr style={{ borderTop: schedules.length > 0 ? '1px solid var(--border-color)' : 'none' }}>
+                <td style={{ padding: '8px 0', color: 'var(--text-secondary)', verticalAlign: 'top' }}>Địa điểm:</td>
+                <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{location}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+          {pref.includes("Kiểm tra bơi") && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>ℹ️</span> <span>{note}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', paddingTop: '16px', borderTop: '1px dotted var(--border-color)' }}>
+            <span>📞</span> <span>{contact}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const handleOption1 = () => {
     setShowSubSelect(true);
   };
 
   const handleSubOption1 = (subChoice: "BÓNG RỔ" | "CẦU LÔNG") => {
     setShowSubSelect(false);
-    setSelectedPreference(`Ôn bơi - học ${subChoice.toLowerCase()} - Kiểm tra bơi`);
+    const prefStr = `Ôn bơi - học ${subChoice.toLowerCase()} - Kiểm tra bơi`;
+    setSelectedPreference(prefStr);
     setConfirmContent(`Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.`);
     
-    const locationInfo = getLocation(subChoice === "BÓNG RỔ" ? "Bóng rổ" : "Cầu lông");
-    const scheduleSwim = formatSchedules("Bơi");
-    const scheduleSport = formatSchedules(subChoice === "BÓNG RỔ" ? "Bóng rổ" : "Cầu lông");
-    
-    setSuccessContent(`Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).\n\nLịch ôn bơi: ${scheduleSwim}.\nLịch học ${subChoice.toLowerCase()}: ${scheduleSport}.\nĐịa điểm: ${locationInfo}.\nLịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.\n\nQuý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).`);
+    setSuccessContent(getPreferenceDetails(prefStr));
     setShowConfirmModal(true);
   };
 
   const handleOption2 = () => {
-    setSelectedPreference("HỌC BƠI - Kiểm tra bơi");
+    const prefStr = "HỌC BƠI - Kiểm tra bơi";
+    setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn HỌC BƠI 19 BUỔI 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    const locationInfo = getLocation("Bơi");
-    const scheduleSwim = formatSchedules("Bơi");
-    
-    setSuccessContent(`Cảm ơn Quý khách đã chọn 19 BUỔI HỌC BƠI, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).\n\nLịch học bơi: ${scheduleSwim}.\nĐịa điểm: ${locationInfo}.\nLịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.\n\nQuý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).`);
+    setSuccessContent(getPreferenceDetails(prefStr));
     setShowConfirmModal(true);
   };
 
   const handleOption3 = () => {
-    setSelectedPreference("HỌC BÓNG RỔ");
+    const prefStr = "HỌC BÓNG RỔ";
+    setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn CHỈ HỌC BÓNG RỔ. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    const locationInfo = getLocation("Bóng rổ");
-    const scheduleSport = formatSchedules("Bóng rổ");
-    
-    setSuccessContent(`Cảm ơn Quý khách đã chọn 20 BUỔI HỌC BÓNG RỔ.\n\nLịch học: ${scheduleSport}\nĐịa điểm: ${locationInfo}.\n\nQuý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).`);
+    setSuccessContent(getPreferenceDetails(prefStr));
     setShowConfirmModal(true);
   };
 
   const handleOption4 = () => {
-    setSelectedPreference("HỌC CẦU LÔNG");
+    const prefStr = "HỌC CẦU LÔNG";
+    setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn CHỈ HỌC CẦU LÔNG. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    const locationInfo = getLocation("Cầu lông");
-    const scheduleSport = formatSchedules("Cầu lông");
-    
-    setSuccessContent(`Cảm ơn Quý khách đã chọn 20 BUỔI HỌC CẦU LÔNG.\n\nLịch học: ${scheduleSport}\nĐịa điểm: ${locationInfo}.\n\nQuý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).`);
+    setSuccessContent(getPreferenceDetails(prefStr));
     setShowConfirmModal(true);
   };
 
@@ -285,7 +359,13 @@ export default function SubjectSelectionPage() {
             <h2 className="page-title" style={{ fontSize: '28px', marginBottom: '16px', background: 'var(--gradient-success)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Đã ghi nhận nguyện vọng!
             </h2>
-            <p className="page-subtitle" style={{ fontSize: '16px' }}>Bạn đã hoàn tất chọn môn. Bạn có thể đăng xuất một cách an toàn.</p>
+            {existingPreference || selectedPreference ? (
+              <div style={{ textAlign: "left", background: "var(--bg-glass)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border-color)", whiteSpace: "pre-wrap", fontSize: "15px", lineHeight: 1.6, color: "var(--text-secondary)", margin: "0 auto", maxWidth: "600px", marginTop: "16px" }}>
+                {getPreferenceDetails(existingPreference || selectedPreference)}
+              </div>
+            ) : (
+              <p className="page-subtitle" style={{ fontSize: '16px' }}>Bạn đã hoàn tất chọn môn. Bạn có thể đăng xuất một cách an toàn.</p>
+            )}
           </div>
         )}
       </main>
