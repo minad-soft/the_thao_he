@@ -9,7 +9,7 @@ export async function PUT(
   const body = await request.json();
   const { 
     full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes,
-    package_id, receipt_number, status, remaining_sessions, amount_paid, payments 
+    package_id, receipt_number, status, remaining_sessions, amount_paid, payments, sports_preference 
   } = body;
 
   // Validation
@@ -30,7 +30,7 @@ export async function PUT(
   // 1. Cập nhật bảng students
   const { data: studentData, error: studentError } = await supabaseAdmin
     .from("students")
-    .update({ full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes })
+    .update({ full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes, sports_preference })
     .eq("id", id)
     .select()
     .single();

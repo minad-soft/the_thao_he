@@ -100,6 +100,7 @@ export default function StudentsTable({
     receipt_number: "", 
     amount_paid: "",
     payments: [] as Array<{ payment_method_id: string; amount: string }>,
+    sports_preference: "",
     status: "ACTIVE",
     remaining_sessions: 0,
     registration_id: "",
@@ -499,6 +500,7 @@ export default function StudentsTable({
       registration_id: reg?.id || "",
       is_card_issued: reg?.is_card_issued || false,
       card_reissue_count: reg?.card_reissue_count || 0,
+      sports_preference: student.sports_preference || "",
     });
     setError("");
     setIsModalOpen(true);
@@ -1433,6 +1435,21 @@ export default function StudentsTable({
                 />
               </div>
             )}
+            <div className="form-group">
+              <label className="form-label">Nguyện vọng</label>
+              <select
+                className="form-input"
+                value={formData.sports_preference || ""}
+                onChange={(e) => setFormData({ ...formData, sports_preference: e.target.value })}
+              >
+                <option value="">-- Chưa chọn / Xóa nguyện vọng --</option>
+                <option value="Ôn bơi - học bóng rổ - Kiểm tra bơi">Ôn bơi - học bóng rổ - Kiểm tra bơi</option>
+                <option value="Ôn bơi - học cầu lông - Kiểm tra bơi">Ôn bơi - học cầu lông - Kiểm tra bơi</option>
+                <option value="HỌC BƠI - Kiểm tra bơi">HỌC BƠI - Kiểm tra bơi</option>
+                <option value="HỌC BÓNG RỔ">HỌC BÓNG RỔ</option>
+                <option value="HỌC CẦU LÔNG">HỌC CẦU LÔNG</option>
+              </select>
+            </div>
             <div className="form-group">
               <label className="form-label">Ghi chú</label>
               <textarea

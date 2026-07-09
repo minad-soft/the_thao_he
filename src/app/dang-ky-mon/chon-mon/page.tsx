@@ -129,7 +129,7 @@ export default function SubjectSelectionPage() {
     
     let title = "";
     let schedules: {label: string, value: React.ReactNode}[] = [];
-    let location = "";
+    let locations: {label: string, value: string}[] = [];
     const note = "Lịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.";
     const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
 
@@ -139,32 +139,44 @@ export default function SubjectSelectionPage() {
         { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
         { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
       ];
-      location = getLocation("Bóng rổ");
+      locations = [
+        { label: "Địa điểm ôn bơi", value: getLocation("Ôn bơi") },
+        { label: "Địa điểm bóng rổ", value: getLocation("Bóng rổ") }
+      ];
     } else if (pref === "Ôn bơi - học cầu lông - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC CẦU LÔNG, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
       schedules = [
         { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
         { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
       ];
-      location = getLocation("Cầu lông");
+      locations = [
+        { label: "Địa điểm ôn bơi", value: getLocation("Ôn bơi") },
+        { label: "Địa điểm cầu lông", value: getLocation("Cầu lông") }
+      ];
     } else if (pref === "HỌC BƠI - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn 19 BUỔI HỌC BƠI, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
       schedules = [
         { label: "Lịch học bơi", value: formatSchedules("Học bơi") }
       ];
-      location = getLocation("Học bơi");
+      locations = [
+        { label: "Địa điểm", value: getLocation("Học bơi") }
+      ];
     } else if (pref === "HỌC BÓNG RỔ") {
       title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC BÓNG RỔ.";
       schedules = [
         { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
       ];
-      location = getLocation("Bóng rổ");
+      locations = [
+        { label: "Địa điểm", value: getLocation("Bóng rổ") }
+      ];
     } else if (pref === "HỌC CẦU LÔNG") {
       title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC CẦU LÔNG.";
       schedules = [
         { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
       ];
-      location = getLocation("Cầu lông");
+      locations = [
+        { label: "Địa điểm", value: getLocation("Cầu lông") }
+      ];
     } else {
       return <div>Nguyện vọng của bạn: {pref}</div>;
     }
@@ -184,10 +196,12 @@ export default function SubjectSelectionPage() {
                   <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{s.value}</td>
                 </tr>
               ))}
-              <tr style={{ borderTop: schedules.length > 0 ? '1px solid var(--border-color)' : 'none' }}>
-                <td style={{ padding: '8px 0', color: 'var(--text-secondary)', verticalAlign: 'top' }}>Địa điểm:</td>
-                <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{location}</td>
-              </tr>
+              {locations.map((loc, i) => (
+                <tr key={`loc-${i}`} style={{ borderTop: (i === 0 && schedules.length > 0) ? '1px solid var(--border-color)' : 'none', borderBottom: i < locations.length - 1 ? '1px dashed var(--border-color)' : 'none' }}>
+                  <td style={{ padding: '8px 0', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{loc.label}:</td>
+                  <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>{loc.value}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
