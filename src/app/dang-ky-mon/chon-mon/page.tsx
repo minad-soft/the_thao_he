@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
+import "@/app/globals.css";
 
 interface Schedule {
   name: string;
@@ -85,7 +86,6 @@ export default function SubjectSelectionPage() {
     }
   };
 
-  // Helper to format schedules for display
   const formatSchedules = (subjectName: string) => {
     const schedules = settings.schedules[subjectName];
     if (!schedules || schedules.length === 0) return "Chưa có lịch";
@@ -147,49 +147,106 @@ export default function SubjectSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">Cổng Học Viên - Chọn Môn</h1>
-          <button 
-            onClick={handleLogout}
-            className="text-sm font-medium text-red-600 hover:text-red-800"
-          >
-            Đăng xuất
-          </button>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+      {/* Header */}
+      <header style={{
+        background: 'var(--bg-secondary)',
+        borderBottom: '1px solid var(--border-color)',
+        padding: '16px 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '10px',
+            background: 'var(--gradient-primary)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', fontSize: '18px'
+          }}>🎓</div>
+          <h1 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
+            Cổng Học Viên
+          </h1>
         </div>
+        <button 
+          onClick={handleLogout}
+          className="btn btn-ghost btn-sm"
+          style={{ color: 'var(--accent-rose)', borderColor: 'rgba(244,63,94,0.3)' }}
+        >
+          Đăng xuất
+        </button>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      {/* Main Content */}
+      <main style={{
+        flex: 1,
+        padding: '32px 20px',
+        maxWidth: '900px',
+        margin: '0 auto',
+        width: '100%',
+        backgroundImage: 'var(--gradient-glow)',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'top center'
+      }}>
         {!isSaved ? (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-              Vui lòng chọn nguyện vọng môn học
-            </h2>
+          <div className="card" style={{ padding: '32px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <h2 className="page-title" style={{ fontSize: '24px', marginBottom: '8px' }}>
+                Chọn Môn Học Mùa Hè
+              </h2>
+              <p className="page-subtitle">Vui lòng chọn 1 trong 4 nguyện vọng bên dưới để hoàn tất thủ tục.</p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button onClick={handleOption1} className="p-4 border-2 border-blue-500 rounded-xl text-blue-700 font-medium hover:bg-blue-50 transition-colors h-32 flex items-center justify-center text-center">
-                ÔN BƠI và học BÓNG RỔ HOẶC CẦU LÔNG
+            <div className="form-grid-2">
+              <button onClick={handleOption1} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', background: 'var(--bg-secondary)', border: '2px solid rgba(99, 102, 241, 0.3)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-indigo)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)'}>
+                <div style={{ fontSize: '40px' }}>🏊🏀</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--accent-indigo-light)' }}>
+                  ÔN BƠI và học BÓNG RỔ HOẶC CẦU LÔNG
+                </div>
               </button>
               
-              <button onClick={handleOption2} className="p-4 border-2 border-teal-500 rounded-xl text-teal-700 font-medium hover:bg-teal-50 transition-colors h-32 flex items-center justify-center text-center">
-                HỌC BƠI
+              <button onClick={handleOption2} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', background: 'var(--bg-secondary)', border: '2px solid rgba(6, 182, 212, 0.3)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-cyan)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)'}>
+                <div style={{ fontSize: '40px' }}>🏊</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--accent-cyan)' }}>
+                  HỌC BƠI
+                </div>
               </button>
               
-              <button onClick={handleOption3} className="p-4 border-2 border-orange-500 rounded-xl text-orange-700 font-medium hover:bg-orange-50 transition-colors h-32 flex items-center justify-center text-center">
-                CHỈ HỌC BÓNG RỔ
+              <button onClick={handleOption3} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', background: 'var(--bg-secondary)', border: '2px solid rgba(245, 158, 11, 0.3)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-amber)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)'}>
+                <div style={{ fontSize: '40px' }}>🏀</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--accent-amber)' }}>
+                  CHỈ HỌC BÓNG RỔ
+                </div>
               </button>
               
-              <button onClick={handleOption4} className="p-4 border-2 border-purple-500 rounded-xl text-purple-700 font-medium hover:bg-purple-50 transition-colors h-32 flex items-center justify-center text-center">
-                CHỈ HỌC CẦU LÔNG
+              <button onClick={handleOption4} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', background: 'var(--bg-secondary)', border: '2px solid rgba(16, 185, 129, 0.3)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-emerald)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)'}>
+                <div style={{ fontSize: '40px' }}>🏸</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--accent-emerald-light)' }}>
+                  CHỈ HỌC CẦU LÔNG
+                </div>
               </button>
             </div>
           </div>
         ) : (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-            <div className="text-green-500 text-5xl mb-4">✓</div>
-            <h2 className="text-2xl font-bold text-green-800 mb-2">Đã ghi nhận nguyện vọng!</h2>
-            <p className="text-green-700">Bạn đã hoàn tất chọn môn. Bạn có thể đăng xuất một cách an toàn.</p>
+          <div className="card" style={{ padding: '48px 32px', textAlign: 'center', borderColor: 'var(--accent-emerald)', background: 'rgba(16, 185, 129, 0.05)' }}>
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gradient-success)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 24px', boxShadow: 'var(--shadow-glow-emerald)'
+            }}>✓</div>
+            <h2 className="page-title" style={{ fontSize: '28px', marginBottom: '16px', background: 'var(--gradient-success)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Đã ghi nhận nguyện vọng!
+            </h2>
+            <p className="page-subtitle" style={{ fontSize: '16px' }}>Bạn đã hoàn tất chọn môn. Bạn có thể đăng xuất một cách an toàn.</p>
           </div>
         )}
       </main>
@@ -200,13 +257,19 @@ export default function SubjectSelectionPage() {
         onClose={() => setShowLogoutModal(false)} 
         title="Cảnh báo đăng xuất"
         footer={
-          <div className="flex justify-end space-x-3 w-full">
-            <button onClick={() => setShowLogoutModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Không</button>
-            <button onClick={confirmLogout} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Có, đăng xuất</button>
-          </div>
+          <>
+            <button onClick={() => setShowLogoutModal(false)} className="btn btn-ghost">Không</button>
+            <button onClick={confirmLogout} className="btn btn-primary" style={{ background: 'var(--accent-rose)' }}>Có, đăng xuất</button>
+          </>
         }
       >
-        <p className="text-gray-700">Bạn chưa hoàn tất chọn môn, có chắc chắn muốn đăng xuất?</p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ fontSize: '32px' }}>⚠️</div>
+          <div>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 500, margin: '0 0 8px 0' }}>Bạn chưa hoàn tất chọn môn</p>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Nguyện vọng của bạn chưa được lưu vào hệ thống. Bạn có chắc chắn muốn đăng xuất không?</p>
+          </div>
+        </div>
       </Modal>
 
       {/* Sub-select for Option 1 */}
@@ -215,10 +278,21 @@ export default function SubjectSelectionPage() {
         onClose={() => setShowSubSelect(false)}
         title="Chọn môn học kèm"
       >
-        <p className="text-gray-700 mb-4">Vui lòng chọn 1 trong 2 môn sau:</p>
-        <div className="flex space-x-4">
-          <button onClick={() => handleSubOption1("BÓNG RỔ")} className="flex-1 py-3 bg-orange-100 text-orange-800 font-medium rounded hover:bg-orange-200">Bóng Rổ</button>
-          <button onClick={() => handleSubOption1("CẦU LÔNG")} className="flex-1 py-3 bg-purple-100 text-purple-800 font-medium rounded hover:bg-purple-200">Cầu Lông</button>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Vui lòng chọn 1 trong 2 môn sau để học kèm với ÔN BƠI:</p>
+        <div className="form-grid-2">
+          <button onClick={() => handleSubOption1("BÓNG RỔ")} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-amber)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}>
+            <span style={{ fontSize: '32px' }}>🏀</span>
+            <span style={{ fontWeight: 600, color: 'var(--accent-amber)' }}>Bóng Rổ</span>
+          </button>
+          
+          <button onClick={() => handleSubOption1("CẦU LÔNG")} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-emerald)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}>
+            <span style={{ fontSize: '32px' }}>🏸</span>
+            <span style={{ fontWeight: 600, color: 'var(--accent-emerald-light)' }}>Cầu Lông</span>
+          </button>
         </div>
       </Modal>
 
@@ -226,29 +300,37 @@ export default function SubjectSelectionPage() {
       <Modal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        title="Xác nhận môn học"
+        title="Xác nhận nguyện vọng"
         footer={
-          <div className="flex justify-end space-x-3 w-full">
-            <button onClick={() => setShowConfirmModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Chọn Lại</button>
-            <button onClick={savePreference} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Xác Nhận</button>
-          </div>
+          <>
+            <button onClick={() => setShowConfirmModal(false)} className="btn btn-ghost">Chọn Lại</button>
+            <button onClick={savePreference} className="btn btn-primary">Xác Nhận</button>
+          </>
         }
       >
-        <p className="text-gray-700">{confirmContent}</p>
+        <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <p style={{ color: 'var(--text-primary)', margin: 0, lineHeight: 1.6 }}>{confirmContent}</p>
+        </div>
       </Modal>
 
       {/* Success Modal */}
       <Modal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Đăng ký thành công"
+        title="🎉 Đăng ký thành công"
         footer={
-          <div className="flex justify-end w-full">
-            <button onClick={() => setShowSuccessModal(false)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Đóng</button>
-          </div>
+          <button onClick={() => setShowSuccessModal(false)} className="btn btn-primary">Đóng</button>
         }
       >
-        <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+        <div style={{ 
+          background: 'var(--bg-secondary)', 
+          padding: '20px', 
+          borderRadius: 'var(--radius-md)', 
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          color: 'var(--text-primary)',
+          whiteSpace: 'pre-line',
+          lineHeight: 1.7
+        }}>
           {successContent}
         </div>
       </Modal>
