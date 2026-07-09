@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!students || students.length === 0) {
       return NextResponse.json(
-        { error: "Không tìm thấy học viên với thông tin này" },
+        { error: "Có thể bạn chưa đăng ký hoặc kiểm tra lại họ tên, ngày tháng năm sinh (lưu ý ngày tháng năm sinh nhập viết liền và không có dấu /)" },
         { status: 404 }
       );
     }
