@@ -735,9 +735,13 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   color: var(--text-muted);
 }
 
-.form-select option {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+select, .form-select, .form-input {
+  color-scheme: dark;
+}
+
+select option, .form-select option, .form-input option {
+  background-color: #111827 !important;
+  color: #f1f5f9 !important;
 }
 
 .form-row {

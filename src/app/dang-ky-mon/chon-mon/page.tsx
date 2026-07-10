@@ -207,8 +207,8 @@ export default function SubjectSelectionPage() {
             <span>📞</span> <span>{contact}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '4px' }}>
-            <span>💬</span> 
-            <span style={{ lineHeight: 1.5 }}>
+            <span style={{ flexShrink: 0 }}>💬</span> 
+            <span style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
               Mời học viên tham gia nhóm zalo <a href="https://zalo.me/g/jok1auvzvdj9vi8adfxp" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-indigo)', fontWeight: 500, textDecoration: 'underline' }}>tại đây</a> (https://zalo.me/g/jok1auvzvdj9vi8adfxp) để cập nhật các thông báo từ khóa thể thao hè.
             </span>
           </div>
