@@ -19,7 +19,7 @@ export async function GET() {
 // POST /api/shifts — Thêm ca học mới
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week } = body;
+  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week, capacity } = body;
 
   if (!shift_name || !start_time || !end_time || !subject || !start_date || !end_date) {
     return NextResponse.json(
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     subject,
     subject_id: subject_id ?? null,
     days_of_week: days_of_week ?? [],
+    capacity: capacity ?? 30,
   };
 
   const { data, error } = await supabaseAdmin

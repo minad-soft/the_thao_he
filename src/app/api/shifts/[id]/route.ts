@@ -8,7 +8,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week } = body;
+  const { shift_name, start_date, end_date, start_time, end_time, subject, subject_id, days_of_week, capacity } = body;
 
   const { data, error } = await supabaseAdmin
     .from("shifts")
@@ -21,6 +21,7 @@ export async function PUT(
       subject,
       subject_id: subject_id ?? null,
       days_of_week,
+      capacity,
     })
     .eq("id", id)
     .select()

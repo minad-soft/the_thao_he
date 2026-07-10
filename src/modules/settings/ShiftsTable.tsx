@@ -20,6 +20,7 @@ const defaultShiftItem = {
   start_time: "",
   end_time: "",
   days_of_week: [] as string[],
+  capacity: 30,
 };
 
 const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -97,6 +98,7 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
       start_time: shift.start_time,
       end_time: shift.end_time,
       days_of_week: shift.days_of_week,
+      capacity: shift.capacity ?? 30,
     }]);
     setError("");
     setIsModalOpen(true);
@@ -282,6 +284,7 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
                         <th>Thời gian (Giờ)</th>
                         <th>Thời gian (Ngày)</th>
                         <th>Ngày học</th>
+                        <th>Sức chứa</th>
                         <th style={{ textAlign: "right" }}>Thao tác</th>
                       </tr>
                     </thead>
@@ -310,6 +313,11 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
                                 </span>
                               ))}
                             </div>
+                          </td>
+                          <td>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent-amber)" }}>
+                              {shift.capacity ?? 30}
+                            </span>
                           </td>
                           <td style={{ textAlign: "right", display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                             <button className="btn btn-ghost btn-sm" onClick={() => handleOpenEdit(shift)}>
@@ -445,6 +453,16 @@ export default function ShiftsTable({ shifts, subjects, onShiftAdded, onShiftUpd
                     type="time"
                     value={item.end_time}
                     onChange={(e) => handleItemChange(index, "end_time", e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Sức chứa tối đa *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="1"
+                    value={item.capacity}
+                    onChange={(e) => handleItemChange(index, "capacity", parseInt(e.target.value) || 0)}
                   />
                 </div>
               </div>

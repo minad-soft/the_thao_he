@@ -72,6 +72,14 @@ export interface Shift {
   subject_id: string | null; // FK to subjects table
   days_of_week: string[]; // e.g. ['T2','T4','T6']
   room_name?: string; // Thông tin phòng học
+  capacity: number; // Sức chứa tối đa
+  created_at: string;
+}
+
+export interface StudentPreferredShift {
+  id: string;
+  student_id: string;
+  shift_id: string;
   created_at: string;
 }
 

@@ -6,6 +6,7 @@ import RevenueChart from "@/modules/reports/RevenueChart";
 import CheckinChart from "@/modules/reports/CheckinChart";
 import RevenueBySchoolChart from "@/modules/reports/RevenueBySchoolChart";
 import FilteredListTable from "@/modules/reports/FilteredListTable";
+import ShiftStatistics from "@/modules/reports/ShiftStatistics";
 import "./reports.css";
 
 export default function ReportsPage() {
@@ -222,6 +223,8 @@ export default function ReportsPage() {
       <div style={{ marginTop: "24px" }}>
         <CheckinChart data={data.checkinData} />
       </div>
+
+      <ShiftStatistics />
 
       <FilteredListTable 
         data={data.listData} 

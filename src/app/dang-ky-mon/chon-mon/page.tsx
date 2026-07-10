@@ -32,7 +32,21 @@ export default function SubjectSelectionPage() {
   // Option 1 Sub-selection
   const [showSubSelect, setShowSubSelect] = useState(false);
 
+  // Shift selection state
+  const [availableShifts, setAvailableShifts] = useState<any[]>([]);
+  const [selectedShifts, setSelectedShifts] = useState<Record<string, string>>({});
+  const [requiredSubjects, setRequiredSubjects] = useState<{keyword: string, label: string}[]>([]);
+  const [showShiftSelect, setShowShiftSelect] = useState(false);
+
   useEffect(() => {
+    // Fetch shifts
+    fetch("/api/student-portal/shifts")
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setAvailableShifts(data);
+      })
+      .catch(err => console.error("Error fetching shifts:", err));
+
     // Fetch settings
     fetch("/api/student-portal/settings")
       .then(res => res.json())
@@ -85,20 +99,33 @@ export default function SubjectSelectionPage() {
   };
 
   const savePreference = async () => {
+    // Check if all required shifts are selected
+    for (const req of requiredSubjects) {
+      if (!selectedShifts[req.keyword]) {
+        alert(`Vui lòng chọn ca học cho môn ${req.label}`);
+        return;
+      }
+    }
+
     try {
       const res = await fetch("/api/student-portal/preferences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preference: selectedPreference })
+        body: JSON.stringify({ 
+          preference: selectedPreference,
+          shift_ids: Object.values(selectedShifts)
+        })
       });
       if (res.ok) {
         setIsSaved(true);
         setShowConfirmModal(false);
+        setShowShiftSelect(false);
         setShowSuccessModal(true);
       } else {
-        alert("Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại.");
+        const data = await res.json();
+        alert(data.error || "Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại.");
       }
-    } catch (e) {
+    } catch (err) {
       alert("Lỗi kết nối.");
     }
   };
@@ -232,7 +259,12 @@ export default function SubjectSelectionPage() {
     setConfirmContent(`Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.`);
     
     setSuccessContent(getPreferenceDetails(prefStr));
-    setShowConfirmModal(true);
+    setRequiredSubjects([
+      { keyword: "ôn bơi", label: "Ôn bơi" },
+      { keyword: subChoice.toLowerCase(), label: subChoice === "BÓNG RỔ" ? "Bóng rổ" : "Cầu lông" }
+    ]);
+    setSelectedShifts({});
+    setShowShiftSelect(true);
   };
 
   const handleOption2 = () => {
@@ -241,7 +273,11 @@ export default function SubjectSelectionPage() {
     setConfirmContent("Quý khách đã chọn HỌC BƠI 19 BUỔI 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
     setSuccessContent(getPreferenceDetails(prefStr));
-    setShowConfirmModal(true);
+    setRequiredSubjects([
+      { keyword: "bơi", label: "Học bơi" }
+    ]);
+    setSelectedShifts({});
+    setShowShiftSelect(true);
   };
 
   const handleOption3 = () => {
@@ -250,7 +286,11 @@ export default function SubjectSelectionPage() {
     setConfirmContent("Quý khách đã chọn CHỈ HỌC BÓNG RỔ. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
     setSuccessContent(getPreferenceDetails(prefStr));
-    setShowConfirmModal(true);
+    setRequiredSubjects([
+      { keyword: "bóng rổ", label: "Bóng rổ" }
+    ]);
+    setSelectedShifts({});
+    setShowShiftSelect(true);
   };
 
   const handleOption4 = () => {
@@ -259,7 +299,11 @@ export default function SubjectSelectionPage() {
     setConfirmContent("Quý khách đã chọn CHỈ HỌC CẦU LÔNG. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
     setSuccessContent(getPreferenceDetails(prefStr));
-    setShowConfirmModal(true);
+    setRequiredSubjects([
+      { keyword: "cầu lông", label: "Cầu lông" }
+    ]);
+    setSelectedShifts({});
+    setShowShiftSelect(true);
   };
 
   return (
@@ -448,6 +492,89 @@ export default function SubjectSelectionPage() {
             <span style={{ fontSize: '32px' }}>🏸</span>
             <span style={{ fontWeight: 600, color: 'var(--accent-emerald-light)' }}>Cầu Lông</span>
           </button>
+        </div>
+      </Modal>
+
+      {/* Shift Selection Modal */}
+      <Modal
+        isOpen={showShiftSelect}
+        onClose={() => setShowShiftSelect(false)}
+        title="Bước 2: Chọn Ca Học"
+        footer={
+          <>
+            <button onClick={() => setShowShiftSelect(false)} className="btn btn-ghost">Quay lại</button>
+            <button 
+              onClick={() => setShowConfirmModal(true)} 
+              className="btn btn-primary" 
+              disabled={requiredSubjects.some(req => !selectedShifts[req.keyword])}
+            >
+              Tiếp tục
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
+            Vui lòng chọn ca học cho các môn trong gói bạn đã đăng ký:
+          </p>
+          
+          {requiredSubjects.map((req, index) => {
+            // Find shifts for this keyword
+            const shifts = availableShifts.filter(s => s.subject && s.subject.toLowerCase().includes(req.keyword));
+            
+            return (
+              <div key={index} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', background: 'var(--bg-secondary)' }}>
+                <h3 style={{ fontSize: '16px', color: 'var(--text-primary)', margin: '0 0 12px 0' }}>Môn: {req.label}</h3>
+                
+                {shifts.length === 0 ? (
+                  <p style={{ color: 'var(--accent-rose)', fontStyle: 'italic', margin: 0 }}>Không có ca học nào cho môn này.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {shifts.map(shift => {
+                      const isSelected = selectedShifts[req.keyword] === shift.id;
+                      const isFull = shift.is_full;
+                      
+                      return (
+                        <label 
+                          key={shift.id} 
+                          style={{ 
+                            display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', 
+                            background: isSelected ? 'var(--bg-glass-hover)' : 'var(--bg-primary)', 
+                            border: `1px solid ${isSelected ? 'var(--accent-indigo)' : 'var(--border-color)'}`,
+                            borderRadius: '6px',
+                            cursor: isFull ? 'not-allowed' : 'pointer',
+                            opacity: isFull ? 0.6 : 1
+                          }}
+                        >
+                          <input 
+                            type="radio" 
+                            name={`shift-${req.keyword}`}
+                            checked={isSelected}
+                            disabled={isFull}
+                            onChange={() => !isFull && setSelectedShifts(prev => ({ ...prev, [req.keyword]: shift.id }))}
+                            style={{ width: '18px', height: '18px', accentColor: 'var(--accent-indigo)' }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{shift.shift_name}</div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                              {shift.start_time.slice(0, 5)} - {shift.end_time.slice(0, 5)} | {shift.days_of_week.join(", ")}
+                            </div>
+                          </div>
+                          <div>
+                            {isFull ? (
+                              <span className="badge badge-rose">Đã đầy</span>
+                            ) : (
+                              <span className="badge badge-emerald">Còn chỗ</span>
+                            )}
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Modal>
 
