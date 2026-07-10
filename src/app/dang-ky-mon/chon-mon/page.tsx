@@ -14,6 +14,18 @@ interface Schedule {
   daysOfWeek: string[];
 }
 
+const isMatch = (name1: string, name2: string) => {
+  const n1 = name1.toLowerCase().trim();
+  const n2 = name2.toLowerCase().trim();
+  if (n1 === n2) return true;
+  
+  const isBoi1 = n1 === "học bơi" || n1 === "bơi" || n1 === "bơi lội";
+  const isBoi2 = n2 === "học bơi" || n2 === "bơi" || n2 === "bơi lội";
+  if (isBoi1 && isBoi2) return true;
+  
+  return false;
+};
+
 export default function SubjectSelectionPage() {
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(false);
@@ -26,8 +38,8 @@ export default function SubjectSelectionPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [confirmContent, setConfirmContent] = useState("");
-  const [successContent, setSuccessContent] = useState<React.ReactNode>(null);
   const [selectedPreference, setSelectedPreference] = useState("");
+  const [confirmedShiftIds, setConfirmedShiftIds] = useState<string[]>([]);
   
   // Option 1 Sub-selection
   const [showSubSelect, setShowSubSelect] = useState(false);
@@ -63,6 +75,9 @@ export default function SubjectSelectionPage() {
       .then(data => {
         if (!data.error && data.sports_preference) {
           setExistingPreference(data.sports_preference);
+          if (data.student_preferred_shifts) {
+            setConfirmedShiftIds(data.student_preferred_shifts.map((s: any) => s.shift_id));
+          }
           setIsSaved(true);
         }
         setLoadingMe(false);
@@ -118,6 +133,7 @@ export default function SubjectSelectionPage() {
       });
       if (res.ok) {
         setIsSaved(true);
+        setConfirmedShiftIds(Object.values(selectedShifts));
         setShowConfirmModal(false);
         setShowShiftSelect(false);
         setShowSuccessModal(true);
@@ -131,7 +147,30 @@ export default function SubjectSelectionPage() {
   };
 
   const formatSchedules = (subjectName: string) => {
-    const schedules = settings.schedules[subjectName];
+    const selectedShiftsForSubject = availableShifts.filter(shift => 
+      confirmedShiftIds.includes(shift.id) && 
+      shift.subject && 
+      isMatch(subjectName, shift.subject)
+    );
+
+    if (selectedShiftsForSubject.length > 0) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '2px' }}>
+          {selectedShiftsForSubject.map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <span style={{ color: 'var(--accent-emerald)', fontSize: '14px', marginTop: '2px' }}>•</span>
+              <span style={{ lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 600 }}>{s.shift_name}</span> ({s.days_of_week.join(", ")} | {s.start_time.slice(0,5)} - {s.end_time.slice(0,5)})
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    const matchedScheduleKey = Object.keys(settings.schedules).find(key => isMatch(subjectName, key));
+    const schedules = matchedScheduleKey ? settings.schedules[matchedScheduleKey] : [];
+    
     if (!schedules || schedules.length === 0) return "Chưa có lịch";
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '2px' }}>
@@ -148,7 +187,27 @@ export default function SubjectSelectionPage() {
   };
 
   const getLocation = (subjectName: string) => {
-    return settings.locations[subjectName] || "Chưa cập nhật địa điểm";
+    const matchedKey = Object.keys(settings.locations).find(key => 
+      isMatch(subjectName, key)
+    );
+
+    if (matchedKey) {
+      return settings.locations[matchedKey];
+    }
+    return "Chưa cập nhật địa điểm";
+  };
+
+  const getSubjectNote = (subjectName: string) => {
+    if (!settings.subjectNotes) return undefined;
+    
+    const matchedKey = Object.keys(settings.subjectNotes).find(key => 
+      isMatch(subjectName, key)
+    );
+
+    if (matchedKey) {
+      return settings.subjectNotes[matchedKey];
+    }
+    return undefined;
   };
 
   const getPreferenceDetails = (pref: string) => {
@@ -202,7 +261,7 @@ export default function SubjectSelectionPage() {
         
         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {subjectsList.map((sub, index) => {
-                const noteObj = settings.subjectNotes?.[sub.name];
+                const noteObj = getSubjectNote(sub.name);
                 return (
                     <div key={index} style={{ borderBottom: index < subjectsList.length - 1 ? '1px solid var(--border-color)' : 'none', paddingBottom: index < subjectsList.length - 1 ? '16px' : '0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         
@@ -258,7 +317,6 @@ export default function SubjectSelectionPage() {
     setSelectedPreference(prefStr);
     setConfirmContent(`Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.`);
     
-    setSuccessContent(getPreferenceDetails(prefStr));
     setRequiredSubjects([
       { keyword: "ôn bơi", label: "Ôn bơi" },
       { keyword: subChoice.toLowerCase(), label: subChoice === "BÓNG RỔ" ? "Bóng rổ" : "Cầu lông" }
@@ -272,7 +330,6 @@ export default function SubjectSelectionPage() {
     setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn HỌC BƠI 19 BUỔI 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    setSuccessContent(getPreferenceDetails(prefStr));
     setRequiredSubjects([
       { keyword: "bơi", label: "Học bơi" }
     ]);
@@ -285,7 +342,6 @@ export default function SubjectSelectionPage() {
     setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn CHỈ HỌC BÓNG RỔ. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    setSuccessContent(getPreferenceDetails(prefStr));
     setRequiredSubjects([
       { keyword: "bóng rổ", label: "Bóng rổ" }
     ]);
@@ -298,7 +354,6 @@ export default function SubjectSelectionPage() {
     setSelectedPreference(prefStr);
     setConfirmContent("Quý khách đã chọn CHỈ HỌC CẦU LÔNG. Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.");
     
-    setSuccessContent(getPreferenceDetails(prefStr));
     setRequiredSubjects([
       { keyword: "cầu lông", label: "Cầu lông" }
     ]);
@@ -372,7 +427,6 @@ export default function SubjectSelectionPage() {
                 className="btn"
                 style={{ backgroundColor: 'var(--accent-rose)', color: '#fff', border: 'none', width: 'auto', display: 'inline-block', padding: '10px 24px', fontWeight: 600, borderRadius: '8px' }}
                 onClick={() => {
-                  setSuccessContent(getPreferenceDetails(existingPreference));
                   setShowSuccessModal(true);
                 }}
               >
@@ -520,7 +574,7 @@ export default function SubjectSelectionPage() {
           
           {requiredSubjects.map((req, index) => {
             // Find shifts for this keyword
-            const shifts = availableShifts.filter(s => s.subject && s.subject.toLowerCase().includes(req.keyword));
+            const shifts = availableShifts.filter(s => s.subject && isMatch(req.keyword, s.subject));
             
             return (
               <div key={index} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', background: 'var(--bg-secondary)' }}>
@@ -613,7 +667,7 @@ export default function SubjectSelectionPage() {
           whiteSpace: 'pre-line',
           lineHeight: 1.7
         }}>
-          {successContent}
+          {getPreferenceDetails(existingPreference || selectedPreference)}
         </div>
       </Modal>
 

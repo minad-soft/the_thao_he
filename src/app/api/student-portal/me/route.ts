@@ -20,7 +20,14 @@ export async function GET(req: Request) {
     // Truy vấn thông tin học viên
     const { data: student, error } = await supabaseAdmin
       .from("students")
-      .select("id, full_name, sports_preference")
+      .select(`
+        id, 
+        full_name, 
+        sports_preference,
+        student_preferred_shifts (
+          shift_id
+        )
+      `)
       .eq("id", payload.studentId)
       .single();
 
