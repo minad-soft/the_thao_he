@@ -133,13 +133,13 @@ export default function SubjectSelectionPage() {
     const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
 
     if (pref === "Ôn bơi - học bóng rổ - Kiểm tra bơi") {
-      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC BÓNG RỔ, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
+      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC BÓNG RỔ, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
       subjectsList = [
         { name: "Ôn bơi", scheduleLabel: "Lịch ôn bơi", locationLabel: "Địa điểm ôn bơi" },
         { name: "Bóng rổ", scheduleLabel: "Lịch học bóng rổ", locationLabel: "Địa điểm bóng rổ" }
       ];
     } else if (pref === "Ôn bơi - học cầu lông - Kiểm tra bơi") {
-      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC CẦU LÔNG, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
+      title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC CẦU LÔNG, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
       subjectsList = [
         { name: "Ôn bơi", scheduleLabel: "Lịch ôn bơi", locationLabel: "Địa điểm ôn bơi" },
         { name: "Cầu lông", scheduleLabel: "Lịch học cầu lông", locationLabel: "Địa điểm cầu lông" }
