@@ -225,7 +225,7 @@ export default function SubjectSelectionPage() {
     setShowSubSelect(false);
     const prefStr = `Ôn bơi - học ${subChoice.toLowerCase()} - Kiểm tra bơi`;
     setSelectedPreference(prefStr);
-    setConfirmContent(`Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.`);
+    setConfirmContent(`Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC ${subChoice}, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN). Quý khách vui lòng bấm nút xác nhận nếu đồng ý hoặc bấm nút Chọn Lại.`);
     
     setSuccessContent(getPreferenceDetails(prefStr));
     setShowConfirmModal(true);
