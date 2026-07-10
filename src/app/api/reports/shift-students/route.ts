@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     // Bước 2: Lấy thông tin chi tiết học viên
     const { data: studentsData, error: stuError } = await supabaseAdmin
       .from('students')
-      .select('id, full_name, status, school_id')
+      .select('id, full_name, dob, school_id')
       .in('id', studentIds);
 
     if (stuError) {
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
           shift_id: pref.shift_id,
           student_id: student.id,
           full_name: student.full_name,
-          status: student.status,
+          dob: student.dob,
           school_name: schoolMap[student.school_id] || "Khác"
         };
       })

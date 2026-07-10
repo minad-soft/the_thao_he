@@ -39,6 +39,14 @@ export async function PUT(
     return NextResponse.json({ error: studentError.message }, { status: 500 });
   }
 
+  // 1b. Nếu sports_preference bị xóa/để trống thì xóa luôn các ca học đã chọn trước đó
+  if (!sports_preference || sports_preference.trim() === "") {
+    await supabaseAdmin
+      .from("student_preferred_shifts")
+      .delete()
+      .eq("student_id", id);
+  }
+
   // 2. Cập nhật bảng registrations (nếu có)
   const { data: registrations } = await supabaseAdmin
     .from("registrations")
@@ -150,6 +158,12 @@ export async function DELETE(
   if (regError) {
     return NextResponse.json({ error: "Lỗi xóa ghi danh: " + regError.message }, { status: 500 });
   }
+
+  // 3b. Xóa nguyện vọng ca học đã chọn
+  await supabaseAdmin
+    .from("student_preferred_shifts")
+    .delete()
+    .eq("student_id", id);
 
   // 4. Xóa học viên
   const { error } = await supabaseAdmin

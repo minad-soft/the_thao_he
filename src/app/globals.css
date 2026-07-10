@@ -164,6 +164,15 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   display: none;
 }
 
+/* Chart Container Defaults (all screen sizes) */
+.chart-wrapper-mobile-scroll {
+  width: 100%;
+  height: 100%;
+}
+.chart-inner-min-width {
+  height: 100%;
+}
+
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0 !important;

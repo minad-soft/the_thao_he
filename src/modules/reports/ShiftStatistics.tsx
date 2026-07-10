@@ -25,8 +25,10 @@ export default function ShiftStatistics() {
   const [modalStudents, setModalStudents] = useState<any[]>([]);
   const [loadingModal, setLoadingModal] = useState(false);
   const [isExportingBulk, setIsExportingBulk] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true);
     fetch(`/api/reports/shift-statistics?t=${Date.now()}`, {
       cache: 'no-store',
       headers: {
@@ -43,7 +45,44 @@ export default function ShiftStatistics() {
         console.error("Failed to fetch shift statistics:", err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/reports/cleanup-shifts', { 
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        return;
+      }
+      
+      if (res.ok) {
+        const result = await res.json();
+        alert(`✅ Đã đồng bộ! Xóa ${result.deleted} bản ghi không hợp lệ.`);
+        fetchData();
+      } else {
+        const err = await res.json();
+        alert(`Lỗi: ${err.error || 'Không thể đồng bộ dữ liệu.'}`);
+      }
+    } catch (err) {
+      console.error('Sync error:', err);
+      alert('Lỗi kết nối. Vui lòng thử lại.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   if (loading) {
     return <div className="card" style={{ padding: "24px", textAlign: "center" }}>Đang tải thống kê ca học...</div>;
@@ -106,8 +145,8 @@ export default function ShiftStatistics() {
         "Môn học": s.subject_name || "-",
         "Ca học": s.shift_name || "-",
         "Tên học viên": s.full_name,
+        "Ngày sinh": s.dob ? new Date(s.dob).toLocaleDateString('vi-VN') : "-",
         "Trường": s.school_name,
-        "Trạng thái": s.status === 'ACTIVE' ? 'Đang học' : (s.status === 'PENDING' ? 'Chờ duyệt' : s.status)
       }));
 
       const worksheet = utils.json_to_sheet(exportData);
@@ -115,7 +154,7 @@ export default function ShiftStatistics() {
       utils.book_append_sheet(workbook, worksheet, "DanhSachHocVien");
 
       const wscols = [
-        { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 30 }, { wch: 15 }
+        { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 30 }
       ];
       worksheet["!cols"] = wscols;
 
@@ -291,7 +330,10 @@ export default function ShiftStatistics() {
       <div className="card" style={{ marginTop: "24px" }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <h3 className="card-title">🕐 Thống kê Đăng ký Ca học</h3>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button className="btn btn-ghost" style={{ height: '36px', minHeight: '36px', fontSize: '14px' }} onClick={handleSync} disabled={isSyncing}>
+              {isSyncing ? '⏳ Đang đồng bộ...' : '🧹 Đồng bộ dữ liệu'}
+            </button>
             <button className="btn btn-outline" style={{ height: '36px', minHeight: '36px', fontSize: '14px' }} onClick={handleExportExcelShiftStats}>
               📥 Xuất Thống Kê (Excel)
             </button>
@@ -484,8 +526,8 @@ export default function ShiftStatistics() {
                           <tr>
                             <th style={{ width: '50px' }}>STT</th>
                             <th>Họ và Tên</th>
+                            <th>Ngày sinh</th>
                             <th>Trường học</th>
-                            <th>Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -493,16 +535,8 @@ export default function ShiftStatistics() {
                             <tr key={stu.student_id}>
                               <td>{i + 1}</td>
                               <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{stu.full_name}</td>
+                              <td>{stu.dob ? new Date(stu.dob).toLocaleDateString('vi-VN') : '—'}</td>
                               <td>{stu.school_name}</td>
-                              <td>
-                                {stu.status === 'ACTIVE' ? (
-                                  <span className="badge badge-emerald">Đang học</span>
-                                ) : stu.status === 'PENDING' ? (
-                                  <span className="badge badge-amber">Chờ duyệt</span>
-                                ) : (
-                                  <span className="badge badge-rose">{stu.status}</span>
-                                )}
-                              </td>
                             </tr>
                           ))}
                         </tbody>

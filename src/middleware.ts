@@ -36,11 +36,13 @@ export async function middleware(request: NextRequest) {
 
   // 3. Xử lý các trang nghiệp vụ khác (cần bảo vệ)
   if (!user) {
-    // Chưa đăng nhập, chuyển hướng về trang /login
+    // Nếu là API route → trả JSON 401 thay vì redirect (tránh lỗi khi client fetch)
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Phiên đăng nhập đã hết hạn" }, { status: 401 });
+    }
+    // Nếu là trang web → chuyển hướng về /login
     const redirectUrl = new URL("/login", request.url);
     if (pathname !== "/") {
-      // Nếu không phải trang chủ, có thể lưu query param để tự động redirect lại sau (nếu muốn)
-      // Ở đây ta có thể hiển thị cảnh báo session hết hạn
       redirectUrl.searchParams.set("error", "session_expired");
     }
     return NextResponse.redirect(redirectUrl);
