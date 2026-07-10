@@ -166,6 +166,7 @@ export default function SettingsPage() {
               onShiftAdded={(s) => setShifts((prev) => [...prev, s])}
               onShiftUpdated={(s) => setShifts((prev) => prev.map((item) => (item.id === s.id ? s : item)))}
               onShiftDeleted={(id) => setShifts((prev) => prev.filter((item) => item.id !== id))}
+              onSubjectUpdated={(s) => setSubjects((prev) => prev.map((item) => (item.id === s.id ? s : item)))}
             />
           )}
           {activeTab === "bank-accounts" && (

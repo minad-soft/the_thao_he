@@ -91,6 +91,8 @@ export interface Subject {
   description: string | null;
   icon: string;
   location: string | null;
+  notes: string | null;
+  show_notes: boolean;
   created_at: string;
 }
 

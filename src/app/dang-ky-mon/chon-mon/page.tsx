@@ -19,7 +19,7 @@ export default function SubjectSelectionPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [existingPreference, setExistingPreference] = useState<string | null>(null);
   const [loadingMe, setLoadingMe] = useState(true);
-  const [settings, setSettings] = useState<{ schedules: Record<string, Schedule[]>, locations: Record<string, string> }>({ schedules: {}, locations: {} });
+  const [settings, setSettings] = useState<{ schedules: Record<string, Schedule[]>, locations: Record<string, string>, subjectNotes?: Record<string, {notes: string | null; show_notes: boolean}> }>({ schedules: {}, locations: {} });
   
   // Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -128,54 +128,36 @@ export default function SubjectSelectionPage() {
     if (!pref) return null;
     
     let title = "";
-    let schedules: {label: string, value: React.ReactNode}[] = [];
-    let locations: {label: string, value: string}[] = [];
+    let subjectsList: { name: string, scheduleLabel: string, locationLabel: string }[] = [];
     const note = "Lịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.";
     const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
 
     if (pref === "Ôn bơi - học bóng rổ - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC BÓNG RỔ, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
-      schedules = [
-        { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
-        { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
-      ];
-      locations = [
-        { label: "Địa điểm ôn bơi", value: getLocation("Ôn bơi") },
-        { label: "Địa điểm bóng rổ", value: getLocation("Bóng rổ") }
+      subjectsList = [
+        { name: "Ôn bơi", scheduleLabel: "Lịch ôn bơi", locationLabel: "Địa điểm ôn bơi" },
+        { name: "Bóng rổ", scheduleLabel: "Lịch học bóng rổ", locationLabel: "Địa điểm bóng rổ" }
       ];
     } else if (pref === "Ôn bơi - học cầu lông - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 19 BUỔI HỌC CẦU LÔNG, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
-      schedules = [
-        { label: "Lịch ôn bơi", value: formatSchedules("Ôn bơi") },
-        { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
-      ];
-      locations = [
-        { label: "Địa điểm ôn bơi", value: getLocation("Ôn bơi") },
-        { label: "Địa điểm cầu lông", value: getLocation("Cầu lông") }
+      subjectsList = [
+        { name: "Ôn bơi", scheduleLabel: "Lịch ôn bơi", locationLabel: "Địa điểm ôn bơi" },
+        { name: "Cầu lông", scheduleLabel: "Lịch học cầu lông", locationLabel: "Địa điểm cầu lông" }
       ];
     } else if (pref === "HỌC BƠI - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn 19 BUỔI HỌC BƠI, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
-      schedules = [
-        { label: "Lịch học bơi", value: formatSchedules("Học bơi") }
-      ];
-      locations = [
-        { label: "Địa điểm", value: getLocation("Học bơi") }
+      subjectsList = [
+        { name: "Học bơi", scheduleLabel: "Lịch học bơi", locationLabel: "Địa điểm" }
       ];
     } else if (pref === "HỌC BÓNG RỔ") {
       title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC BÓNG RỔ.";
-      schedules = [
-        { label: "Lịch học bóng rổ", value: formatSchedules("Bóng rổ") }
-      ];
-      locations = [
-        { label: "Địa điểm", value: getLocation("Bóng rổ") }
+      subjectsList = [
+        { name: "Bóng rổ", scheduleLabel: "Lịch học bóng rổ", locationLabel: "Địa điểm" }
       ];
     } else if (pref === "HỌC CẦU LÔNG") {
       title = "Cảm ơn Quý khách đã chọn 20 BUỔI HỌC CẦU LÔNG.";
-      schedules = [
-        { label: "Lịch học cầu lông", value: formatSchedules("Cầu lông") }
-      ];
-      locations = [
-        { label: "Địa điểm", value: getLocation("Cầu lông") }
+      subjectsList = [
+        { name: "Cầu lông", scheduleLabel: "Lịch học cầu lông", locationLabel: "Địa điểm" }
       ];
     } else {
       return <div>Nguyện vọng của bạn: {pref}</div>;
@@ -187,26 +169,35 @@ export default function SubjectSelectionPage() {
           {title}
         </div>
         
-        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              {schedules.map((s, i) => (
-                <tr key={i} style={{ borderBottom: i < schedules.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
-                  <td style={{ padding: '8px 0', width: '140px', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{s.label}:</td>
-                  <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500 }}>{s.value}</td>
-                </tr>
-              ))}
-              {locations.map((loc, i) => (
-                <tr key={`loc-${i}`} style={{ borderTop: (i === 0 && schedules.length > 0) ? '1px solid var(--border-color)' : 'none', borderBottom: i < locations.length - 1 ? '1px dashed var(--border-color)' : 'none' }}>
-                  <td style={{ padding: '8px 0', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{loc.label}:</td>
-                  <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>{loc.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {subjectsList.map((sub, index) => {
+                const noteObj = settings.subjectNotes?.[sub.name];
+                return (
+                    <div key={index} style={{ borderBottom: index < subjectsList.length - 1 ? '1px solid var(--border-color)' : 'none', paddingBottom: index < subjectsList.length - 1 ? '16px' : '0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{sub.scheduleLabel}:</div>
+                            <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatSchedules(sub.name)}</div>
+                        </div>
+
+                        {noteObj?.show_notes && noteObj?.notes && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Ghi chú:</div>
+                                <div style={{ color: 'var(--text-primary)', fontSize: '14px', whiteSpace: 'pre-wrap', background: 'rgba(99, 102, 241, 0.05)', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid var(--accent-indigo)' }}>{noteObj.notes}</div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{sub.locationLabel}:</div>
+                            <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{getLocation(sub.name)}</div>
+                        </div>
+
+                    </div>
+                )
+            })}
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px', marginTop: '8px' }}>
           {pref.includes("Kiểm tra bơi") && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>ℹ️</span> <span>{note}</span>
@@ -214,6 +205,12 @@ export default function SubjectSelectionPage() {
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', paddingTop: '16px', borderTop: '1px dotted var(--border-color)' }}>
             <span>📞</span> <span>{contact}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '4px' }}>
+            <span>💬</span> 
+            <span style={{ lineHeight: 1.5 }}>
+              Mời học viên tham gia nhóm zalo <a href="https://zalo.me/g/jok1auvzvdj9vi8adfxp" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-indigo)', fontWeight: 500, textDecoration: 'underline' }}>tại đây</a> (https://zalo.me/g/jok1auvzvdj9vi8adfxp) để cập nhật các thông báo từ khóa thể thao hè.
+            </span>
           </div>
         </div>
       </div>

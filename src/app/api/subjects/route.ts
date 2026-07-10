@@ -19,7 +19,7 @@ export async function GET() {
 // POST /api/subjects — Thêm môn học mới
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { subject_name, description, icon, location } = body;
+  const { subject_name, description, icon, location, notes, show_notes } = body;
 
   if (!subject_name) {
     return NextResponse.json(
@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
     description: description ?? null,
     location: location ?? null,
     icon: icon ?? "🏀",
+    notes: notes ?? null,
+    show_notes: show_notes ?? false,
   };
 
   const { data, error } = await supabaseAdmin

@@ -8,11 +8,11 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { subject_name, description, location, icon } = body;
+  const { subject_name, description, location, icon, notes, show_notes } = body;
 
   const { data, error } = await supabaseAdmin
     .from("subjects")
-    .update({ subject_name, description, location, icon })
+    .update({ subject_name, description, location, icon, notes, show_notes })
     .eq("id", id)
     .select()
     .single();
