@@ -130,7 +130,11 @@ export default function SubjectSelectionPage() {
     let title = "";
     let subjectsList: { name: string, scheduleLabel: string, locationLabel: string }[] = [];
     const note = "Lịch kiểm tra bơi trung tâm sẽ thông báo vào cuối khóa.";
-    const contact = "Quý khách cần giải đáp thêm thông tin vui lòng liên hệ 0909932627 (cô Trang).";
+    const contact = (
+      <>
+        Quý khách cần giải đáp thêm thông tin vui lòng liên hệ <a href="tel:0909932627" style={{ backgroundColor: 'var(--accent-amber)', color: '#fff', padding: '2px 8px', borderRadius: '6px', fontWeight: 600, textDecoration: 'none', display: 'inline-block', margin: '0 2px' }}>0909932627</a> (cô Trang).
+      </>
+    );
 
     if (pref === "Ôn bơi - học bóng rổ - Kiểm tra bơi") {
       title = "Cảm ơn Quý khách đã chọn ÔN BƠI 5 BUỔI, 14 BUỔI HỌC BÓNG RỔ, 1 BUỔI KIỂM TRA BƠI (CẤP CHỨNG NHẬN).";
@@ -321,8 +325,8 @@ export default function SubjectSelectionPage() {
                 {existingPreference}
               </p>
               <button
-                className="btn btn-outline"
-                style={{ color: 'var(--accent-indigo)', borderColor: 'var(--accent-indigo)', width: 'auto', display: 'inline-block' }}
+                className="btn"
+                style={{ backgroundColor: 'var(--accent-rose)', color: '#fff', border: 'none', width: 'auto', display: 'inline-block', padding: '10px 24px', fontWeight: 600, borderRadius: '8px' }}
                 onClick={() => {
                   setSuccessContent(getPreferenceDetails(existingPreference));
                   setShowSuccessModal(true);
@@ -332,7 +336,7 @@ export default function SubjectSelectionPage() {
               </button>
             </div>
             <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Nếu có yêu cầu thay đổi vui lòng liên hệ <strong style={{ color: 'var(--accent-rose)' }}>0909932627</strong> (cô Trang).
+              Nếu có yêu cầu thay đổi vui lòng liên hệ <a href="tel:0909932627" style={{ backgroundColor: 'var(--accent-amber)', color: '#fff', padding: '2px 8px', borderRadius: '6px', fontWeight: 600, textDecoration: 'none', display: 'inline-block', margin: '0 2px' }}>0909932627</a> (cô Trang).
             </p>
           </div>
         ) : !isSaved ? (
