@@ -24,6 +24,8 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1);
   const limit = 25;
 
+  const [activeTab, setActiveTab] = useState<'revenue' | 'checkin' | 'classes'>('revenue');
+
   const [filters, setFilters] = useState({
     startDate: defaultStart,
     endDate: defaultEnd,
@@ -158,82 +160,110 @@ export default function ReportsPage() {
         <p className="page-subtitle">Dashboard tổng quan hoạt động dự án Summer Sports</p>
       </div>
 
-      {/* Filter Form */}
-      <div className="card" style={{ marginBottom: "24px" }}>
-        <div className="card-body" style={{ padding: "16px" }}>
-          <form onSubmit={handleFilterSubmit} style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
-            <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "150px" }}>
-              <label className="form-label">Từ ngày</label>
-              <input
-                type="date"
-                className="form-input"
-                value={filters.startDate}
-                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-              />
-            </div>
-            <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "150px" }}>
-              <label className="form-label">Đến ngày</label>
-              <input
-                type="date"
-                className="form-input"
-                value={filters.endDate}
-                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-              />
-            </div>
-            <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
-              <label className="form-label">Trường học</label>
-              <select
-                className="form-select"
-                value={filters.schoolId}
-                onChange={(e) => setFilters({ ...filters, schoolId: e.target.value })}
-              >
-                <option value="">-- Tất cả trường --</option>
-                {schools.map(s => (
-                  <option key={s.id} value={s.id}>{s.school_name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
-              <label className="form-label">Hình thức TT</label>
-              <select
-                className="form-select"
-                value={filters.paymentMethodId}
-                onChange={(e) => setFilters({ ...filters, paymentMethodId: e.target.value })}
-              >
-                <option value="">-- Tất cả --</option>
-                {paymentMethods.map(pm => (
-                  <option key={pm.id} value={pm.id}>{pm.method_name}</option>
-                ))}
-              </select>
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ height: "42px" }} disabled={loading}>
-              {loading ? "Đang lọc..." : "Lọc dữ liệu"}
-            </button>
-          </form>
+      <div className="tabs" style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)' }}>
+        <button 
+          className={`tab-btn ${activeTab === 'revenue' ? 'active' : ''}`}
+          onClick={() => setActiveTab('revenue')}
+          style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'revenue' ? '2px solid var(--accent-indigo)' : '2px solid transparent', color: activeTab === 'revenue' ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, fontSize: '15px', transition: 'all 0.2s' }}
+        >
+          💰 Báo cáo Doanh thu
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'checkin' ? 'active' : ''}`}
+          onClick={() => setActiveTab('checkin')}
+          style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'checkin' ? '2px solid var(--accent-indigo)' : '2px solid transparent', color: activeTab === 'checkin' ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, fontSize: '15px', transition: 'all 0.2s' }}
+        >
+          🎫 Báo cáo Check-in
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'classes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('classes')}
+          style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'classes' ? '2px solid var(--accent-indigo)' : '2px solid transparent', color: activeTab === 'classes' ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, fontSize: '15px', transition: 'all 0.2s' }}
+        >
+          📈 Báo cáo Lớp học
+        </button>
+      </div>
+
+      <div style={{ display: activeTab === 'revenue' ? 'block' : 'none' }}>
+        {/* Filter Form always visible */}
+        <div className="card" style={{ marginBottom: "24px" }}>
+          <div className="card-body" style={{ padding: "16px" }}>
+            <form onSubmit={handleFilterSubmit} style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "150px" }}>
+                <label className="form-label">Từ ngày</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={filters.startDate}
+                  onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                />
+              </div>
+              <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "150px" }}>
+                <label className="form-label">Đến ngày</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={filters.endDate}
+                  onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                />
+              </div>
+              <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
+                <label className="form-label">Trường học</label>
+                <select
+                  className="form-select"
+                  value={filters.schoolId}
+                  onChange={(e) => setFilters({ ...filters, schoolId: e.target.value })}
+                >
+                  <option value="">-- Tất cả trường --</option>
+                  {schools.map(s => (
+                    <option key={s.id} value={s.id}>{s.school_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "200px" }}>
+                <label className="form-label">Hình thức TT</label>
+                <select
+                  className="form-select"
+                  value={filters.paymentMethodId}
+                  onChange={(e) => setFilters({ ...filters, paymentMethodId: e.target.value })}
+                >
+                  <option value="">-- Tất cả --</option>
+                  {paymentMethods.map(pm => (
+                    <option key={pm.id} value={pm.id}>{pm.method_name}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ height: "42px" }} disabled={loading}>
+                {loading ? "Đang lọc..." : "Lọc dữ liệu"}
+              </button>
+            </form>
+          </div>
         </div>
+
+        <StatCards stats={data.stats} />
+
+        <div className="reports-charts" style={{ marginTop: "24px" }}>
+          <RevenueBySchoolChart data={data.revenueBySchoolData} />
+          <RevenueChart data={data.revenueData} />
+        </div>
+
+        <FilteredListTable 
+          data={data.listData} 
+          page={page}
+          totalCount={data.totalListCount}
+          limit={limit}
+          onPageChange={handlePageChange}
+          onExport={handleExportExcel}
+        />
       </div>
 
-      <StatCards stats={data.stats} />
-
-      <div className="reports-charts" style={{ marginTop: "24px" }}>
-        <RevenueBySchoolChart data={data.revenueBySchoolData} />
-        <RevenueChart data={data.revenueData} />
-      </div>
-
-      <div style={{ marginTop: "24px" }}>
+      <div style={{ display: activeTab === 'checkin' ? 'block' : 'none' }}>
         <CheckinChart data={data.checkinData} />
       </div>
 
-      <ShiftStatistics />
-
-      <FilteredListTable 
-        data={data.listData} 
-        page={page}
-        totalCount={data.totalListCount}
-        limit={limit}
-        onPageChange={handlePageChange}
-        onExport={handleExportExcel}
-      />
+      <div style={{ display: activeTab === 'classes' ? 'block' : 'none' }}>
+        <ShiftStatistics />
+      </div>
     </div>
   );
 }
