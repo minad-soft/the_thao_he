@@ -45,6 +45,7 @@ interface StudentRecord {
       payment_methods: { method_name: string } | null;
     }>;
   }>;
+  student_preferred_shifts?: Array<{ shift_id: string }>;
 }
 
 interface StudentsTableProps {
@@ -66,19 +67,38 @@ export default function StudentsTable({
   students, 
   schools = [], 
   packages = [], 
-  paymentMethods = [], 
-  onRefresh,
+  paymentMethods = [],
+  onRefresh, 
   onStudentUpdated, 
   onStudentDeleted,
   page = 1,
   totalCount = 0,
-  limit = 25,
+  limit = 20,
   onPageChange,
-  activeFilter
+  activeFilter = null
 }: StudentsTableProps) {
-  // Edit Student Modal States
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
+
+  // Shifts state for editing
+  const [allShifts, setAllShifts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchShifts = async () => {
+      try {
+        const res = await fetch('/api/shifts');
+        if (res.ok) {
+          const data = await res.json();
+          setAllShifts(data || []);
+        }
+      } catch (e) {
+        console.error("Error fetching shifts", e);
+      }
+    };
+    fetchShifts();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = () => setActiveActionMenu(null);
@@ -101,6 +121,7 @@ export default function StudentsTable({
     amount_paid: "",
     payments: [] as Array<{ payment_method_id: string; amount: string }>,
     sports_preference: "",
+    preferred_shift_ids: [] as string[],
     status: "ACTIVE",
     remaining_sessions: 0,
     registration_id: "",
@@ -203,28 +224,28 @@ export default function StudentsTable({
 
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     full_name: true,
-    dob: false,
-    gender: false,
+    dob: true,
+    gender: true,
     class_name: false,
     phone_number: true,
     school: true,
     notes: false,
     sports_preference: true,
-    pref_status: true,
+    pref_status: false,
     pref_on_boi: false,
     pref_hoc_boi: false,
     pref_bong_ro: false,
     pref_cau_long: false,
-    card_code: true,
-    package: true,
-    price: true,
+    card_code: false,
+    package: false,
+    price: false,
     amount_paid: false,
     debt_amount: false,
-    remaining: true,
+    remaining: false,
     receipt_number: false,
-    payment_method: true,
+    payment_method: false,
     card_issued: true,
-    status: true,
+    status: false,
     created_at: false,
   });
   const [showColumnMenu, setShowColumnMenu] = useState(false);
@@ -501,6 +522,7 @@ export default function StudentsTable({
       is_card_issued: reg?.is_card_issued || false,
       card_reissue_count: reg?.card_reissue_count || 0,
       sports_preference: student.sports_preference || "",
+      preferred_shift_ids: student.student_preferred_shifts ? student.student_preferred_shifts.map(s => s.shift_id) : [],
     });
     setError("");
     setIsModalOpen(true);
@@ -990,20 +1012,20 @@ export default function StudentsTable({
   return (
     <>
       <div className="card" style={{ overflow: "visible" }}>
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 className="card-title">👥 Danh sách Học viên ({students.length})</h3>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '16px' }}>
+          <h3 className="card-title" style={{ margin: 0 }}>👥 Danh sách Học viên ({students.length})</h3>
           <div className="column-toggle" style={{ position: 'relative' }}>
             <button 
               className="btn btn-ghost btn-sm" 
               onClick={() => setShowColumnMenu(!showColumnMenu)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, border: "1px solid var(--border-color)" }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
               Ẩn/hiện cột
             </button>
             {showColumnMenu && (
-              <div style={{ position: 'absolute', right: 0, top: '100%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8, padding: 12, zIndex: 9999, minWidth: 160, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', marginTop: 8, maxHeight: '60vh', overflowY: 'auto' }}>
-                 {availableColumns.map(col => (
+              <div style={{ position: 'absolute', left: 0, top: '100%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8, padding: 12, zIndex: 9999, minWidth: 160, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', marginTop: 8, maxHeight: '60vh', overflowY: 'auto' }}>
+                 {availableColumns.filter(col => col.id !== 'full_name').map(col => (
                     <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-primary)' }}>
                       <input 
                         type="checkbox" 
@@ -1014,14 +1036,14 @@ export default function StudentsTable({
                       {col.label}
                     </label>
                  ))}
-                 <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                 <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'flex-start' }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => setShowColumnMenu(false)} style={{ fontSize: 11, padding: "2px 8px" }}>Đóng</button>
                  </div>
               </div>
             )}
           </div>
         </div>
-        <div className="card-body" style={{ overflowX: "auto" }}>
+        <div className="card-body">
           {students.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">👥</div>
@@ -1029,9 +1051,9 @@ export default function StudentsTable({
             </div>
           ) : (
             <>
-              <div style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
+              <div style={{ maxHeight: "calc(100vh - 250px)", overflow: "auto" }}>
                 <table className="data-table data-table-mobile-card">
-                  <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
+                  <thead style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--bg-secondary)" }}>
                     <tr>
                   {actualVisibleColumns.full_name && <th>Họ tên</th>}
                   {actualVisibleColumns.dob && <th>Ngày sinh</th>}
@@ -1078,7 +1100,7 @@ export default function StudentsTable({
                               fontWeight: 500,
                               padding: 0,
                               textAlign: "left",
-                              textDecoration: "underline",
+                              textDecoration: "none",
                               fontSize: "inherit",
                               fontFamily: "inherit"
                             }}
@@ -1440,7 +1462,15 @@ export default function StudentsTable({
               <select
                 className="form-input"
                 value={formData.sports_preference || ""}
-                onChange={(e) => setFormData({ ...formData, sports_preference: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    sports_preference: val,
+                    // Nếu admin xóa nguyện vọng, xóa các ca đã chọn
+                    preferred_shift_ids: val ? prev.preferred_shift_ids : [] 
+                  }));
+                }}
               >
                 <option value="">-- Chưa chọn / Xóa nguyện vọng --</option>
                 <option value="Ôn bơi - học bóng rổ - Kiểm tra bơi">Ôn bơi - học bóng rổ - Kiểm tra bơi</option>
@@ -1450,6 +1480,103 @@ export default function StudentsTable({
                 <option value="HỌC CẦU LÔNG">HỌC CẦU LÔNG</option>
               </select>
             </div>
+            
+            {/* Vùng chọn ca học cho Admin */}
+            {formData.sports_preference && formData.sports_preference.trim() !== "" && (
+              <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+                <label className="form-label">Chọn ca học cụ thể (Dành cho Admin)</label>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                  gap: "16px",
+                  padding: "16px",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-color)"
+                }}>
+                  {(() => {
+                    // Map nguyện vọng → danh sách môn cần hiển thị ca
+                    // Phải khớp chính xác với subject trong bảng shifts
+                    const pref = formData.sports_preference;
+                    let subjectsToPick: {subject: string, label: string}[] = [];
+                    
+                    if (pref === "Ôn bơi - học bóng rổ - Kiểm tra bơi") {
+                      subjectsToPick = [
+                        { subject: "Ôn bơi", label: "Ôn bơi" },
+                        { subject: "Bóng rổ", label: "Bóng rổ" }
+                      ];
+                    } else if (pref === "Ôn bơi - học cầu lông - Kiểm tra bơi") {
+                      subjectsToPick = [
+                        { subject: "Ôn bơi", label: "Ôn bơi" },
+                        { subject: "Cầu lông", label: "Cầu lông" }
+                      ];
+                    } else if (pref === "HỌC BƠI - Kiểm tra bơi") {
+                      subjectsToPick = [
+                        { subject: "Bơi lội", label: "Học bơi" }
+                      ];
+                    } else if (pref === "HỌC BÓNG RỔ") {
+                      subjectsToPick = [
+                        { subject: "Bóng rổ", label: "Bóng rổ" }
+                      ];
+                    } else if (pref === "HỌC CẦU LÔNG") {
+                      subjectsToPick = [
+                        { subject: "Cầu lông", label: "Cầu lông" }
+                      ];
+                    }
+                    
+                    if (subjectsToPick.length === 0) return <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Không có môn học nào để chọn ca.</p>;
+
+                    return subjectsToPick.map(({ subject, label }) => {
+                      const subjectShifts = allShifts.filter(s => s.subject === subject);
+                      if (subjectShifts.length === 0) return null;
+                      return (
+                        <div key={subject} style={{ background: "var(--bg-primary)", padding: "12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
+                          <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>{label}</h4>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {subjectShifts.map(shift => {
+                              const isChecked = formData.preferred_shift_ids.includes(shift.id);
+                              const isFull = shift.capacity && shift.enrolled_count >= shift.capacity;
+                              // Lấy danh sách shift IDs thuộc môn này để xử lý radio (chỉ chọn 1)
+                              const thisSubjectShiftIds = subjectShifts.map(s => s.id);
+                              return (
+                                <label key={shift.id} style={{ display: "flex", alignItems: "flex-start", gap: "8px", cursor: "pointer", fontSize: "13px" }}>
+                                  <input 
+                                    type="radio" 
+                                    name={`admin-shift-${subject}`}
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        preferred_shift_ids: [
+                                          // Bỏ tất cả ca cũ của môn này, giữ ca các môn khác
+                                          ...prev.preferred_shift_ids.filter(id => !thisSubjectShiftIds.includes(id)),
+                                          // Thêm ca mới được chọn
+                                          shift.id
+                                        ]
+                                      }));
+                                    }}
+                                    style={{ marginTop: "3px", accentColor: "var(--accent-indigo)" }}
+                                  />
+                                  <div>
+                                    <div style={{ fontWeight: 500, color: isFull ? "var(--accent-rose)" : "var(--text-primary)" }}>
+                                      {shift.shift_name} {isFull && <span style={{ color: "var(--accent-rose)", fontSize: "11px", fontWeight: 600 }}>(Đã đầy)</span>}
+                                    </div>
+                                    <div style={{ color: "var(--text-secondary)", fontSize: "12px" }}>
+                                      {shift.days_of_week} • {shift.start_time?.slice(0,5)} - {shift.end_time?.slice(0,5)}
+                                    </div>
+                                    {shift.room_name && <div style={{ color: "var(--text-secondary)", fontSize: "12px" }}>Phòng: {shift.room_name}</div>}
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            )}
             <div className="form-group">
               <label className="form-label">Ghi chú</label>
               <textarea

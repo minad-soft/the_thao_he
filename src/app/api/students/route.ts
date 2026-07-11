@@ -42,7 +42,8 @@ export async function GET(req: Request) {
           amount,
           payment_methods (method_name)
         )
-      )
+      ),
+      student_preferred_shifts (shift_id)
     `, { count: "exact" });
 
   let matchingStudentIds: string[] | null = null;

@@ -4,7 +4,7 @@ import type { ShiftInsert } from "@/types/database.types";
 
 // GET /api/shifts — Lấy danh sách ca học
 export async function GET() {
-  const { data, error } = await supabaseAdmin
+  const { data: shifts, error } = await supabaseAdmin
     .from("shifts")
     .select("*")
     .order("start_time", { ascending: true });
@@ -13,7 +13,33 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  // Đếm số học viên đã đăng ký (bỏ qua trùng lặp)
+  const { data: preferredShifts, error: prefError } = await supabaseAdmin
+    .from('student_preferred_shifts')
+    .select('shift_id, student_id');
+
+  if (prefError) {
+    return NextResponse.json({ error: prefError.message }, { status: 500 });
+  }
+
+  const counts: Record<string, number> = {};
+  const seen = new Set<string>();
+  preferredShifts.forEach((ps: any) => {
+    if (ps.student_id) {
+      const key = `${ps.shift_id}_${ps.student_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        counts[ps.shift_id] = (counts[ps.shift_id] || 0) + 1;
+      }
+    }
+  });
+
+  const shiftsWithCount = shifts.map(shift => ({
+    ...shift,
+    enrolled_count: counts[shift.id] || 0
+  }));
+
+  return NextResponse.json(shiftsWithCount);
 }
 
 // POST /api/shifts — Thêm ca học mới

@@ -1,5 +1,5 @@
 /* ==================== DESIGN SYSTEM - Summer Sports Manager ==================== */
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&subset=vietnamese&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ==================== CSS Variables ==================== */
 :root {
@@ -72,7 +72,7 @@ html {
 }
 
 body {
-  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -87,6 +87,7 @@ body {
 
 .main-content {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
   padding: 32px 40px;
   background-image: var(--gradient-glow);
@@ -265,21 +266,6 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
     top: 0;
   }
   
-  /* Fallback horizontal scroll for normal tables */
-  .data-table:not(.data-table-mobile-card) {
-    white-space: nowrap;
-  }
-  .data-table:not(.data-table-mobile-card) th:first-child,
-  .data-table:not(.data-table-mobile-card) td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-    background: var(--bg-card);
-    box-shadow: 4px 0 8px rgba(0,0,0,0.1);
-  }
-  .data-table:not(.data-table-mobile-card) tbody tr:hover td:first-child {
-    background: var(--bg-card-hover);
-  }
 
   /* Responsive Charts */
   .recharts-responsive-container {
@@ -479,6 +465,24 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: var(--bg-secondary);
+  box-shadow: 4px 0 8px rgba(0,0,0,0.1);
+}
+
+.data-table thead th:first-child {
+  z-index: 30;
+}
+
+.data-table tbody tr:hover td:first-child {
+  background: #1f2937;
 }
 
 .data-table thead th {
@@ -489,7 +493,7 @@ body.sidebar-closed .sidebar-toggle-btn:hover {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;

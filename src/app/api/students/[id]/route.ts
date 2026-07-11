@@ -9,7 +9,7 @@ export async function PUT(
   const body = await request.json();
   const { 
     full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes,
-    package_id, receipt_number, status, remaining_sessions, amount_paid, payments, sports_preference 
+    package_id, receipt_number, status, remaining_sessions, amount_paid, payments, sports_preference, preferred_shift_ids 
   } = body;
 
   // Validation
@@ -39,12 +39,30 @@ export async function PUT(
     return NextResponse.json({ error: studentError.message }, { status: 500 });
   }
 
-  // 1b. Nếu sports_preference bị xóa/để trống thì xóa luôn các ca học đã chọn trước đó
+  // 1b. Cập nhật ca học đã chọn (preferred_shifts)
   if (!sports_preference || sports_preference.trim() === "") {
     await supabaseAdmin
       .from("student_preferred_shifts")
       .delete()
       .eq("student_id", id);
+  } else if (Array.isArray(preferred_shift_ids)) {
+    // Xóa các ca cũ
+    await supabaseAdmin
+      .from("student_preferred_shifts")
+      .delete()
+      .eq("student_id", id);
+      
+    // Thêm các ca mới
+    if (preferred_shift_ids.length > 0) {
+      const uniqueShiftIds = [...new Set(preferred_shift_ids)];
+      const shiftInserts = uniqueShiftIds.map(shiftId => ({
+        student_id: id,
+        shift_id: shiftId
+      }));
+      await supabaseAdmin
+        .from("student_preferred_shifts")
+        .insert(shiftInserts);
+    }
   }
 
   // 2. Cập nhật bảng registrations (nếu có)

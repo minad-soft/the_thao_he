@@ -68,8 +68,15 @@ export async function GET(request: Request) {
       }
     }
 
+    // Deduplicate prefData to avoid showing the same student multiple times
+    const uniquePrefData = prefData.filter((pref, index, self) =>
+      index === self.findIndex((t) => (
+        t.shift_id === pref.shift_id && t.student_id === pref.student_id
+      ))
+    );
+
     // Bước 4: Ghép dữ liệu
-    const formattedData = prefData
+    const formattedData = uniquePrefData
       .map(pref => {
         const student = (studentsData || []).find(s => s.id === pref.student_id);
         if (!student) return null;

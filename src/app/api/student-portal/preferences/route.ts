@@ -62,8 +62,12 @@ export async function POST(req: Request) {
       
     // Thêm ca học mới
     if (shift_ids.length > 0) {
-      const inserts = shift_ids.map(id => ({ student_id: payload.studentId, shift_id: id }));
-      const { error: insertError } = await supabaseAdmin.from("student_preferred_shifts").insert(inserts);
+      const uniqueShiftIds = [...new Set(shift_ids as string[])];
+      const shiftInserts = uniqueShiftIds.map((shiftId: string) => ({
+        student_id: payload.studentId,
+        shift_id: shiftId
+      }));
+      const { error: insertError } = await supabaseAdmin.from("student_preferred_shifts").insert(shiftInserts);
       if (insertError) {
         console.error("Lỗi lưu ca học:", insertError);
         return NextResponse.json({ error: "Lỗi hệ thống khi lưu ca học" }, { status: 500 });

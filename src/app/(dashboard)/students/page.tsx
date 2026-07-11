@@ -178,49 +178,20 @@ export default function StudentsPage() {
         <div style={{ flexBasis: "100%", margin: "8px 0" }}>
           <div style={{ background: "var(--bg-glass)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
             <strong style={{ fontSize: "14px", color: "var(--text-secondary)" }}>LỌC DANH SÁCH LỚP:</strong>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'TEST_BOI' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'TEST_BOI' ? null : 'TEST_BOI')}
-              style={{ border: activeListFilter === 'TEST_BOI' ? 'none' : '1px solid var(--border-color)' }}
+            <select
+              className="form-input"
+              value={activeListFilter || ""}
+              onChange={(e) => setActiveListFilter(e.target.value || null)}
+              style={{ minWidth: "220px", fontWeight: 500 }}
             >
-              🏊 DANH SÁCH KIỂM TRA BƠI
-            </button>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'HOC_BOI' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'HOC_BOI' ? null : 'HOC_BOI')}
-              style={{ border: activeListFilter === 'HOC_BOI' ? 'none' : '1px solid var(--border-color)' }}
-            >
-              🏊 DANH SÁCH HỌC BƠI
-            </button>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'BONG_RO' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'BONG_RO' ? null : 'BONG_RO')}
-              style={{ border: activeListFilter === 'BONG_RO' ? 'none' : '1px solid var(--border-color)' }}
-            >
-              🏀 DANH SÁCH BÓNG RỔ
-            </button>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'CAU_LONG' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'CAU_LONG' ? null : 'CAU_LONG')}
-              style={{ border: activeListFilter === 'CAU_LONG' ? 'none' : '1px solid var(--border-color)' }}
-            >
-              🏸 DANH SÁCH CẦU LÔNG
-            </button>
-            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 8px' }}></div>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'DA_CHON' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'DA_CHON' ? null : 'DA_CHON')}
-              style={{ border: activeListFilter === 'DA_CHON' ? 'none' : '1px solid var(--border-color)', color: 'var(--accent-emerald)' }}
-            >
-              ✓ ĐÃ CHỌN NV
-            </button>
-            <button 
-              className={`btn btn-sm ${activeListFilter === 'CHUA_CHON' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setActiveListFilter(activeListFilter === 'CHUA_CHON' ? null : 'CHUA_CHON')}
-              style={{ border: activeListFilter === 'CHUA_CHON' ? 'none' : '1px solid var(--border-color)', color: 'var(--accent-rose)' }}
-            >
-              ✗ CHƯA CHỌN NV
-            </button>
+              <option value="">-- Tất cả học viên --</option>
+              <option value="TEST_BOI">🏊 Danh sách Kiểm tra bơi</option>
+              <option value="HOC_BOI">🏊 Danh sách Học bơi</option>
+              <option value="BONG_RO">🏀 Danh sách Bóng rổ</option>
+              <option value="CAU_LONG">🏸 Danh sách Cầu lông</option>
+              <option value="DA_CHON">✓ Đã chọn nguyện vọng</option>
+              <option value="CHUA_CHON">✗ Chưa chọn nguyện vọng</option>
+            </select>
           </div>
         </div>
         <div className="students-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
