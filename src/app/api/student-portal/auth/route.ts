@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!students || students.length === 0) {
       return NextResponse.json(
-        { error: "Có thể bạn chưa đăng ký hoặc kiểm tra lại họ tên, ngày tháng năm sinh (lưu ý ngày tháng năm sinh nhập viết liền và không có dấu /)" },
+        { error: "Có thể bạn chưa đăng ký hoặc kiểm tra lại:\n- Họ và tên: nhập tiếng Việt có dấu (ví dụ: NGUYỄN MẠNH KHANG)\n- Mật khẩu là ngày tháng năm sinh: nhập viết liền dạng DDMMYYYY (ví dụ: ngày sinh là 20/01/2011 thì nhập 20012011)\nTrường hợp vẫn không kết nối được vui lòng liên hệ nhân viên để được hỗ trợ, Xin cảm ơn" },
         { status: 404 }
       );
     }

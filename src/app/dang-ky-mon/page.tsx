@@ -81,7 +81,8 @@ export default function StudentLoginPage() {
               borderRadius: 'var(--radius-sm)',
               marginBottom: '20px',
               fontSize: '14px',
-              fontWeight: 500
+              fontWeight: 500,
+              whiteSpace: 'pre-line'
             }}>
               {error}
             </div>
