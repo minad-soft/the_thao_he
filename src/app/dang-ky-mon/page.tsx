@@ -11,6 +11,10 @@ export default function StudentLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const toTitleCase = (str: string) => {
+    return str.trim().toLowerCase().replace(/(^|\s)\S/g, (match) => match.toUpperCase());
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -20,7 +24,7 @@ export default function StudentLoginPage() {
       const res = await fetch("/api/student-portal/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, dob }),
+        body: JSON.stringify({ fullName: fullName.trim().toUpperCase(), dob }),
       });
 
       const data = await res.json();
@@ -94,11 +98,11 @@ export default function StudentLoginPage() {
               id="fullName"
               type="text"
               required
-              placeholder="VD: NGUYỄN MẠNH KHANG"
+              placeholder="VD: Nguyễn Mạnh Khang"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              onBlur={() => setFullName(prev => toTitleCase(prev))}
               className="form-input"
-              style={{ textTransform: 'uppercase' }}
             />
           </div>
 
