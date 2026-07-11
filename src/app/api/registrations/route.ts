@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
     const { data: student, error: studentErr } = await supabaseAdmin
       .from("students")
       .insert({
-        full_name,
+        full_name: full_name ? full_name.trim().replace(/\s+/g, ' ') : full_name,
         dob,
         gender,
         class_name: class_name || null,

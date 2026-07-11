@@ -30,7 +30,10 @@ export async function PUT(
   // 1. Cập nhật bảng students
   const { data: studentData, error: studentError } = await supabaseAdmin
     .from("students")
-    .update({ full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes, sports_preference })
+    .update({ 
+      full_name: full_name ? full_name.trim().replace(/\s+/g, ' ') : full_name, 
+      phone_number, dob, gender, class_name, school_id, other_school_name, notes, sports_preference 
+    })
     .eq("id", id)
     .select()
     .single();
