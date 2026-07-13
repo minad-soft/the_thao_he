@@ -12,7 +12,7 @@ export default function StudentLoginPage() {
   const router = useRouter();
 
   const toTitleCase = (str: string) => {
-    return str.trim().toLowerCase().replace(/(^|\s)\S/g, (match) => match.toUpperCase());
+    return str.trim().normalize('NFC').toLowerCase().replace(/(^|\s)\S/g, (match) => match.toUpperCase());
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,7 +24,10 @@ export default function StudentLoginPage() {
       const res = await fetch("/api/student-portal/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: fullName.trim().toUpperCase(), dob }),
+        body: JSON.stringify({ 
+          fullName: fullName.trim().normalize('NFC').toUpperCase(), 
+          dob: dob.trim() 
+        }),
       });
 
       const data = await res.json();

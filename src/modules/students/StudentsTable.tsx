@@ -194,6 +194,74 @@ export default function StudentsTable({
   const [isBillViewerOpen, setIsBillViewerOpen] = useState(false);
   const [billViewerUrl, setBillViewerUrl] = useState("");
 
+  // Refund Link States (Tạo link hủy đăng ký & hoàn tiền)
+  const [isRefundLinkModalOpen, setIsRefundLinkModalOpen] = useState(false);
+  const [refundLinkLoading, setRefundLinkLoading] = useState(false);
+  const [refundLinkData, setRefundLinkData] = useState<{ magicLink: string; message: string } | null>(null);
+  const [refundLinkCopied, setRefundLinkCopied] = useState(false);
+
+  const handleCreateRefundLink = async (registrationId: string, studentName: string) => {
+    setRefundLinkLoading(true);
+    setRefundLinkData(null);
+    setRefundLinkCopied(false);
+    setIsRefundLinkModalOpen(true);
+    try {
+      const res = await fetch("/api/refund-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registration_id: registrationId }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        alert(errData.error || "Có lỗi xảy ra khi tạo link");
+        setIsRefundLinkModalOpen(false);
+        return;
+      }
+      const data = await res.json();
+      const msg = `Trung tâm Thể Thao Hè gửi anh/chị link hoàn tất thủ tục hủy khóa học và hoàn tiền cho bé ${studentName}. Vui lòng bấm vào link sau để điền thông tin tài khoản ngân hàng nhận tiền hoàn:\n${data.magicLink}`;
+      setRefundLinkData({ magicLink: data.magicLink, message: msg });
+      // Cập nhật state để UI hiển thị "Chờ hủy ĐK"
+      setPendingRefundRegIds(prev => new Set(prev).add(registrationId));
+    } catch {
+      alert("Có lỗi xảy ra");
+      setIsRefundLinkModalOpen(false);
+    } finally {
+      setRefundLinkLoading(false);
+    }
+  };
+
+  const handleCopyRefundMessage = () => {
+    if (refundLinkData) {
+      navigator.clipboard.writeText(refundLinkData.message);
+      setRefundLinkCopied(true);
+      setTimeout(() => setRefundLinkCopied(false), 3000);
+    }
+  };
+
+  // Pending Refund: Theo dõi các registration đang có yêu cầu hoàn tiền (lưu token để có thể copy lại)
+  const [pendingRefundTokens, setPendingRefundTokens] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    const fetchPendingRefunds = async () => {
+      try {
+        const res = await fetch("/api/refund-requests");
+        if (res.ok) {
+          const data = await res.json();
+          const map = new Map<string, string>();
+          data
+            .filter((r: any) => r.status !== 'completed' && r.status !== 'rejected')
+            .forEach((r: any) => {
+              if (r.registration_id && r.token) {
+                map.set(r.registration_id, r.token);
+              }
+            });
+          setPendingRefundTokens(map);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    fetchPendingRefunds();
+  }, []);
+
   // Column visibility state
   const availableColumns = [
     { id: "full_name", label: "Họ tên" },
@@ -1300,13 +1368,20 @@ export default function StudentsTable({
                           ) : "—"}
                         </td>
                       )}
-                      {actualVisibleColumns.status && (
+                        {actualVisibleColumns.status && (
                         <td data-label="Trạng thái">
                           {reg ? (
-                            <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
-                              <span className={`status-dot ${reg.status === "ACTIVE" ? "active" : ""}`}></span>
-                              {reg.status === "ACTIVE" ? "Hoạt động" : reg.status === "CANCELLED" ? "Đã hủy" : reg.status}
-                            </span>
+                            pendingRefundTokens.has(reg.id) ? (
+                              <span className="badge badge-amber">
+                                <span className="status-dot"></span>
+                                Chờ hủy ĐK
+                              </span>
+                            ) : (
+                              <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
+                                <span className={`status-dot ${reg.status === "ACTIVE" ? "active" : ""}`}></span>
+                                {reg.status === "ACTIVE" ? "Hoạt động" : reg.status === "CANCELLED" ? "Đã hủy" : reg.status}
+                              </span>
+                            )
                           ) : "—"}
                         </td>
                       )}
@@ -1621,6 +1696,7 @@ export default function StudentsTable({
               <label className="form-label">Số buổi</label>
               <input
                 type="number"
+                onWheel={(e) => e.currentTarget.blur()}
                 className="form-input"
                 min="0"
                 value={formData.remaining_sessions}
@@ -1632,6 +1708,7 @@ export default function StudentsTable({
               <label className="form-label">Số tiền đóng thực tế (VNĐ) *</label>
               <input
                 type="number"
+                onWheel={(e) => e.currentTarget.blur()}
                 className="form-input"
                 value={formData.amount_paid}
                 onChange={(e) => {
@@ -1700,6 +1777,7 @@ export default function StudentsTable({
                     </select>
                     <input
                       type="number"
+                      onWheel={(e) => e.currentTarget.blur()}
                       className="form-input"
                       style={{ flex: 1, padding: "4px 8px", fontSize: "12px" }}
                       placeholder="Số tiền..."
@@ -1884,6 +1962,7 @@ export default function StudentsTable({
           <label className="form-label">Số tiền đóng thêm (VNĐ) *</label>
           <input
             type="number"
+            onWheel={(e) => e.currentTarget.blur()}
             className="form-input"
             value={payDebtFormData.amount_to_pay}
             onChange={(e) => {
@@ -1938,6 +2017,7 @@ export default function StudentsTable({
                 </select>
                 <input
                   type="number"
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="form-input"
                   style={{ flex: 1, padding: "6px 8px", fontSize: "12px" }}
                   placeholder="Số tiền..."
@@ -2154,20 +2234,7 @@ export default function StudentsTable({
                 💰 TT công nợ
               </button>
             )}
-            {detailsStudent?.registrations?.[0]?.status === "ACTIVE" && (
-              <button 
-                type="button"
-                className="btn"
-                style={{ 
-                  color: "var(--accent-rose)",
-                  border: "1px solid rgba(244, 63, 94, 0.2)",
-                  background: "rgba(244, 63, 94, 0.05)"
-                }}
-                onClick={handleCancelFromDetails}
-              >
-                ❌ Hủy ĐK
-              </button>
-            )}
+
             <button 
               type="button"
               className="btn btn-ghost" 
@@ -2280,9 +2347,29 @@ export default function StudentsTable({
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div style={{ fontSize: "13px" }}>
                       <span style={{ color: "var(--text-muted)", display: "inline-block", width: "130px" }}>Trạng thái:</span>
-                      <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
-                        {reg.status === "ACTIVE" ? "Hoạt động" : reg.status === "CANCELLED" ? "Đã hủy" : reg.status}
-                      </span>
+                      {pendingRefundTokens.has(reg.id) ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span className="badge badge-amber">Chờ hủy ĐK</span>
+                          <button 
+                            className="btn btn-ghost" 
+                            style={{ padding: "2px 8px", fontSize: "11px", height: "24px", minHeight: "24px" }}
+                            onClick={() => {
+                              const token = pendingRefundTokens.get(reg.id);
+                              if (token) {
+                                const link = `${window.location.origin}/refund-request/${token}`;
+                                navigator.clipboard.writeText(link);
+                                alert("Đã copy lại link hủy đăng ký!");
+                              }
+                            }}
+                          >
+                            📋 Copy lại link
+                          </button>
+                        </div>
+                      ) : (
+                        <span className={`badge ${reg.status === "ACTIVE" ? "badge-emerald" : reg.status === "CANCELLED" ? "badge-rose" : "badge-slate"}`}>
+                          {reg.status === "ACTIVE" ? "Hoạt động" : reg.status === "CANCELLED" ? "Đã hủy" : reg.status}
+                        </span>
+                      )}
                     </div>
 
                     <div style={{ fontSize: "13px" }}>
@@ -2461,6 +2548,50 @@ export default function StudentsTable({
                         </div>
                       </div>
                     )}
+
+                    {/* Nút Tạo link hủy đăng ký & hoàn tiền */}
+                    {reg.status === "ACTIVE" && !pendingRefundTokens.has(reg.id) && (
+                      <div style={{ borderTop: "1px dashed var(--border-color)", marginTop: "12px", paddingTop: "12px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleCreateRefundLink(reg.id, detailsStudent?.full_name || "")}
+                          style={{
+                            width: "100%",
+                            padding: "10px 16px",
+                            background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          🔗 Tạo link hủy đăng ký & hoàn tiền
+                        </button>
+                      </div>
+                    )}
+                    {reg.status === "ACTIVE" && pendingRefundTokens.has(reg.id) && (
+                      <div style={{ borderTop: "1px dashed var(--border-color)", marginTop: "12px", paddingTop: "12px" }}>
+                        <div style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          background: "rgba(245, 158, 11, 0.1)",
+                          border: "1px solid rgba(245, 158, 11, 0.3)",
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          color: "var(--accent-amber)",
+                          textAlign: "center",
+                        }}>
+                          ⏳ Đang chờ hủy đăng ký & hoàn tiền
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Chưa đăng ký gói học nào</div>
@@ -2561,6 +2692,7 @@ export default function StudentsTable({
             <label className="form-label">Số tiền đóng thực tế *</label>
             <input 
               type="number" 
+              onWheel={(e) => e.currentTarget.blur()}
               className="form-control" 
               value={registerFormData.amount_paid} 
               onChange={(e) => {
@@ -2596,6 +2728,7 @@ export default function StudentsTable({
                   </select>
                   <input 
                     type="number" 
+                    onWheel={(e) => e.currentTarget.blur()}
                     className="form-control" 
                     value={payment.amount}
                     onChange={e => {
@@ -2636,6 +2769,58 @@ export default function StudentsTable({
               </button>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Modal Tạo Link Hủy Đăng Ký & Hoàn Tiền */}
+      <Modal isOpen={isRefundLinkModalOpen} onClose={() => setIsRefundLinkModalOpen(false)} title="🔗 Link hủy đăng ký & Hoàn tiền">
+        <div style={{ padding: "16px" }}>
+          {refundLinkLoading ? (
+            <div style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Đang tạo link...</div>
+          ) : refundLinkData ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "8px", padding: "12px" }}>
+                <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--accent-emerald-light)", marginBottom: "8px" }}>✅ Tạo link thành công!</div>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Hãy copy tin nhắn bên dưới và gửi qua Zalo cho phụ huynh.</div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: "12px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>Nội dung tin nhắn gửi Zalo:</label>
+                <div style={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  fontSize: "13px",
+                  color: "var(--text-primary)",
+                  lineHeight: "1.6",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-all",
+                }}>
+                  {refundLinkData.message}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopyRefundMessage}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: refundLinkCopied ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                {refundLinkCopied ? "✅ Đã copy! Hãy dán vào Zalo" : "📋 Copy tin nhắn"}
+              </button>
+            </div>
+          ) : null}
         </div>
       </Modal>
     </>

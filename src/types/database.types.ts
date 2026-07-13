@@ -144,6 +144,26 @@ export interface Staff {
   created_at: string;
 }
 
+export interface RefundRequest {
+  id: string;
+  registration_id: string;
+  token: string;
+  parent_name: string | null;
+  relation: string | null;
+  phone: string | null;
+  reason: string | null;
+  bank_name: string | null;
+  bank_account: string | null;
+  bank_owner: string | null;
+  status: 'pending_info' | 'pending_accountant' | 'pending_manager' | 'pending_payment' | 'completed' | 'rejected';
+  created_by: string | null;
+  accountant_id: string | null;
+  manager_id: string | null;
+  receipt_image: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ==================== Insert Types (omit auto-generated fields) ====================
 
 export type SchoolInsert = Omit<School, "id" | "created_at">;
@@ -156,6 +176,7 @@ export type SubjectInsert = Omit<Subject, "id" | "created_at">;
 export type BankAccountInsert = Omit<BankAccount, "id" | "created_at">;
 export type PaymentMethodInsert = Omit<PaymentMethod, "id" | "created_at">;
 export type StaffInsert = Omit<Staff, "id" | "created_at">;
+export type RefundRequestInsert = Omit<RefundRequest, "id" | "created_at" | "updated_at">;
 
 // ==================== Update Types (all fields optional) ====================
 
@@ -189,6 +210,7 @@ export type SubjectUpdate = Partial<SubjectInsert>;
 export type BankAccountUpdate = Partial<BankAccountInsert>;
 export type PaymentMethodUpdate = Partial<PaymentMethodInsert>;
 export type StaffUpdate = Partial<StaffInsert>;
+export type RefundRequestUpdate = Partial<RefundRequestInsert>;
 
 // ==================== Supabase Database Type (for typed client) ====================
 
@@ -254,6 +276,11 @@ export interface Database {
         Row: BatchCheckin;
         Insert: Omit<BatchCheckin, "id" | "performed_at">;
         Update: Partial<Omit<BatchCheckin, "id" | "performed_at">>;
+      };
+      refund_requests: {
+        Row: RefundRequest;
+        Insert: RefundRequestInsert;
+        Update: RefundRequestUpdate;
       };
     };
     Views: Record<string, never>;

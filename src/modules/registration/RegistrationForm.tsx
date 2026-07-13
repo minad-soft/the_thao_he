@@ -471,6 +471,7 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
                   <label className="form-label">Số tiền đóng thực tế (VNĐ) *</label>
                   <input
                     type="number"
+                    onWheel={(e) => e.currentTarget.blur()}
                     className="form-input"
                     placeholder="Nhập số tiền thực trả..."
                     value={formData.amount_paid}
@@ -569,6 +570,7 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
                     <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
                       <input
                         type="number"
+                        onWheel={(e) => e.currentTarget.blur()}
                         className="form-input"
                         placeholder="Số tiền..."
                         value={payment.amount}
