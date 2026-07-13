@@ -220,8 +220,12 @@ export default function StudentsTable({
       const data = await res.json();
       const msg = `Trung tâm Thể Thao Hè gửi anh/chị link hoàn tất thủ tục hủy khóa học và hoàn tiền cho bé ${studentName}. Vui lòng bấm vào link sau để điền thông tin tài khoản ngân hàng nhận tiền hoàn:\n${data.magicLink}`;
       setRefundLinkData({ magicLink: data.magicLink, message: msg });
-      // Cập nhật state để UI hiển thị "Chờ hủy ĐK"
-      setPendingRefundRegIds(prev => new Set(prev).add(registrationId));
+      // Cập nhật state để UI hiển thị "Chờ hủy ĐK" và lưu token
+      setPendingRefundTokens(prev => {
+        const newMap = new Map(prev);
+        newMap.set(registrationId, data.token);
+        return newMap;
+      });
     } catch {
       alert("Có lỗi xảy ra");
       setIsRefundLinkModalOpen(false);
