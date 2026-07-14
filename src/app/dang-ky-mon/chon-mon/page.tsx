@@ -52,7 +52,7 @@ export default function SubjectSelectionPage() {
 
   useEffect(() => {
     // Fetch shifts
-    fetch("/api/student-portal/shifts")
+    fetch("/api/student-portal/shifts", { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error) setAvailableShifts(data);
@@ -60,7 +60,7 @@ export default function SubjectSelectionPage() {
       .catch(err => console.error("Error fetching shifts:", err));
 
     // Fetch settings
-    fetch("/api/student-portal/settings")
+    fetch("/api/student-portal/settings", { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error) {
@@ -70,7 +70,7 @@ export default function SubjectSelectionPage() {
       .catch(err => console.error("Error fetching settings:", err));
 
     // Fetch me
-    fetch("/api/student-portal/me")
+    fetch("/api/student-portal/me", { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error && data.sports_preference) {
