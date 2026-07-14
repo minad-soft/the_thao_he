@@ -32,13 +32,22 @@ export async function POST(req: Request) {
         .single();
         
       if (shiftData && shiftData.capacity) {
-        const { count } = await supabaseAdmin
+        const { data: prefData } = await supabaseAdmin
           .from('student_preferred_shifts')
-          .select('*', { count: 'exact', head: true })
+          .select('student_id')
           .eq('shift_id', shift_id);
           
-        if (count !== null && count >= shiftData.capacity) {
-          return NextResponse.json({ error: `Ca học ${shiftData.shift_name} đã đầy (${count}/${shiftData.capacity}). Vui lòng chọn ca khác.` }, { status: 400 });
+        if (prefData) {
+          const uniqueStudents = new Set(prefData.map(p => p.student_id));
+          // Không tính học viên hiện tại vào số lượng đã đăng ký (vì họ đang đăng ký/cập nhật)
+          uniqueStudents.delete(payload.studentId);
+          const countOtherStudents = uniqueStudents.size;
+          
+          if (countOtherStudents >= shiftData.capacity) {
+            // Lấy lại tổng số hiện tại để hiển thị lỗi cho chuẩn
+            const displayCount = uniqueStudents.size;
+            return NextResponse.json({ error: `Ca học ${shiftData.shift_name} đã đầy (${displayCount}/${shiftData.capacity}). Vui lòng chọn ca khác.` }, { status: 400 });
+          }
         }
       }
     }
