@@ -20,6 +20,7 @@ export default function StudentsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterDebtOnly, setFilterDebtOnly] = useState(false);
   const [activeListFilter, setActiveListFilter] = useState<string | null>(null);
+  const [activeSchoolFilter, setActiveSchoolFilter] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>("STAFF");
   
   const [page, setPage] = useState(1);
@@ -37,7 +38,7 @@ export default function StudentsPage() {
   // Reset page to 1 when search or filter changes
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, filterDebtOnly, activeListFilter]);
+  }, [debouncedSearchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -47,7 +48,8 @@ export default function StudentsPage() {
         limit: limit.toString(),
         search: debouncedSearchTerm,
         debtOnly: filterDebtOnly.toString(),
-        listFilter: activeListFilter || ""
+        listFilter: activeListFilter || "",
+        schoolFilter: activeSchoolFilter || ""
       });
 
       const [studentsRes, schoolsRes, packagesRes, paymentMethodsRes, authRes] = await Promise.all([
@@ -76,7 +78,7 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, debouncedSearchTerm, filterDebtOnly, activeListFilter]);
+  }, [page, limit, debouncedSearchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
 
   useEffect(() => {
     fetchData();
@@ -88,6 +90,7 @@ export default function StudentsPage() {
         search: debouncedSearchTerm,
         debtOnly: filterDebtOnly.toString(),
         listFilter: activeListFilter || "",
+        schoolFilter: activeSchoolFilter || "",
         export: "true"
       });
       const res = await fetch(`/api/students?${queryParams.toString()}`);
@@ -169,6 +172,7 @@ export default function StudentsPage() {
         search: debouncedSearchTerm,
         debtOnly: filterDebtOnly.toString(),
         listFilter: activeListFilter || "",
+        schoolFilter: activeSchoolFilter || "",
         export: "true"
       });
       const res = await fetch(`/api/students?${queryParams.toString()}`);
@@ -245,6 +249,19 @@ export default function StudentsPage() {
               <option value="CAU_LONG">🏸 Danh sách Cầu lông</option>
               <option value="DA_CHON">✓ Đã chọn nguyện vọng</option>
               <option value="CHUA_CHON">✗ Chưa chọn nguyện vọng</option>
+            </select>
+            
+            <strong style={{ fontSize: "14px", color: "var(--text-secondary)", marginLeft: "8px" }}>TRƯỜNG HỌC:</strong>
+            <select
+              className="form-input"
+              value={activeSchoolFilter || ""}
+              onChange={(e) => setActiveSchoolFilter(e.target.value || null)}
+              style={{ minWidth: "220px", fontWeight: 500 }}
+            >
+              <option value="">-- Tất cả trường --</option>
+              {schools.map((school: any) => (
+                <option key={school.id} value={school.id}>{school.school_name}</option>
+              ))}
             </select>
           </div>
         </div>

@@ -10,6 +10,7 @@ export async function GET(req: Request) {
   const debtOnly = searchParams.get('debtOnly') === 'true';
   const exportMode = searchParams.get('export') === 'true';
   const listFilter = searchParams.get('listFilter') || '';
+  const schoolFilter = searchParams.get('schoolFilter') || '';
 
   let studentQuery = supabaseAdmin
     .from("students")
@@ -111,6 +112,11 @@ export async function GET(req: Request) {
     studentQuery = studentQuery.not('sports_preference', 'is', null).neq('sports_preference', '');
   } else if (listFilter === 'CHUA_CHON') {
     studentQuery = studentQuery.or('sports_preference.is.null,sports_preference.eq.');
+  }
+
+  // Áp dụng bộ lọc trường học
+  if (schoolFilter) {
+    studentQuery = studentQuery.eq('school_id', schoolFilter);
   }
 
   studentQuery = studentQuery.order("created_at", { ascending: false });
