@@ -42,7 +42,8 @@ const navItems: NavGroup[] = [
         icon: "🎫",
         roles: ["ADMIN", "STAFF", "ACCOUNTANT"],
         subItems: [
-          { href: "/checkin-batch", label: "Check-in Lớp", icon: "📋", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] }
+          { href: "/checkin-batch", label: "Check-in Lớp", icon: "📋", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] },
+          { href: "/checkin-history", label: "Lịch sử Điểm danh", icon: "🕒", roles: ["ADMIN", "STAFF", "ACCOUNTANT", "ACCOUNTANT"] }
         ]
       },
       { href: "#", label: "Huấn luyện viên", icon: "🏃", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] },

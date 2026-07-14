@@ -34,9 +34,23 @@ export async function GET() {
     }
   });
 
+  // Lấy danh sách các phiên check-in đang diễn ra
+  const { data: activeBatches, error: batchesError } = await supabaseAdmin
+    .from('batch_checkins')
+    .select('id, shift_id')
+    .eq('status', 'IN_PROGRESS');
+
+  const activeBatchMap: Record<string, string> = {};
+  if (activeBatches) {
+    activeBatches.forEach((b: any) => {
+      activeBatchMap[b.shift_id] = b.id;
+    });
+  }
+
   const shiftsWithCount = shifts.map(shift => ({
     ...shift,
-    enrolled_count: counts[shift.id] || 0
+    enrolled_count: counts[shift.id] || 0,
+    active_batch_id: activeBatchMap[shift.id] || null
   }));
 
   return NextResponse.json(shiftsWithCount);

@@ -3,6 +3,57 @@ import { supabaseAdmin } from "@/lib/supabase-server";
 
 
 /**
+ * GET /api/checkin/batch/[batchId]
+ * Lấy chi tiết phiên và danh sách đã check-in
+ */
+export async function GET(request: Request) {
+  const xParams = request.headers.get("x-nextjs-params");
+  const batchId = xParams ? xParams.split("/").pop() : undefined;
+
+  if (!batchId) {
+    return NextResponse.json({ error: "Missing batchId" }, { status: 400 });
+  }
+
+  // Lấy chi tiết logs
+  const { data: logs, error } = await supabaseAdmin
+    .from("checkin_logs")
+    .select(`
+      id,
+      checked_in_at,
+      status,
+      lat,
+      lng,
+      registrations (
+        student_id,
+        card_code,
+        remaining_sessions,
+        students ( id, full_name, school_id ),
+        pricing_packages ( subject )
+      )
+    `)
+    .eq("batch_checkin_id", batchId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Format lại giống mảng entries
+  // Tránh fetch schools nếu chậm, nhưng có thể mock "—" vì UI không nhất thiết
+  const entries = logs.map((log: any) => ({
+    log_id: log.id,
+    student_name: log.registrations?.students?.full_name || log.registrations?.card_code || "Unknown",
+    card_code: log.registrations?.card_code,
+    school_name: "—", // Không cần thiết tốn thêm query, hoặc mock
+    subject_name: log.registrations?.pricing_packages?.subject || "—",
+    sessions_used: 1,
+    sessions_total: (log.registrations?.remaining_sessions || 0) + 1, // +1 vì đã bị trừ
+    location: { lat: log.lat || 0, lng: log.lng || 0 }
+  }));
+
+  return NextResponse.json({ entries });
+}
+
+/**
  * POST /api/checkin/batch/[batchId]/add
  * Thêm một check‑in vào batch hiện có.
  * Body: { card_code: string, lat: number, lng: number }

@@ -50,6 +50,27 @@ export default function SubjectSelectionPage() {
   const [requiredSubjects, setRequiredSubjects] = useState<{keyword: string, label: string}[]>([]);
   const [showShiftSelect, setShowShiftSelect] = useState(false);
 
+  // Checkin History State
+  const [showHistory, setShowHistory] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [checkinHistory, setCheckinHistory] = useState<any[]>([]);
+
+  const loadCheckinHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch("/api/student-portal/checkin-history");
+      if (res.ok) {
+        const json = await res.json();
+        setCheckinHistory(json.data || []);
+        setShowHistory(true);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   useEffect(() => {
     // Fetch shifts
     fetch("/api/student-portal/shifts", { cache: 'no-store' })
@@ -499,6 +520,57 @@ export default function SubjectSelectionPage() {
               </div>
             ) : (
               <p className="page-subtitle" style={{ fontSize: '16px' }}>Bạn đã hoàn tất chọn môn. Bạn có thể đăng xuất một cách an toàn.</p>
+            )}
+          </div>
+        )}
+
+        {/* Lịch sử điểm danh (Lazy load) */}
+        {isSaved && (
+          <div className="card" style={{ marginTop: '24px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 className="page-title" style={{ fontSize: '20px', margin: 0 }}>📅 Lịch sử Điểm danh</h2>
+              <button 
+                onClick={showHistory ? () => setShowHistory(false) : loadCheckinHistory} 
+                className="btn btn-outline" 
+                disabled={loadingHistory}
+              >
+                {loadingHistory ? "Đang tải..." : (showHistory ? "Đóng lại" : "Tra cứu lịch sử")}
+              </button>
+            </div>
+            
+            {showHistory && (
+              <div style={{ overflowX: 'auto', marginTop: '16px', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                <table className="data-table" style={{ width: '100%', minWidth: '400px', margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 50, textAlign: 'center' }}>STT</th>
+                      <th>Thời gian</th>
+                      <th>Môn học</th>
+                      <th>Ca học</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checkinHistory.length === 0 ? (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>Chưa có dữ liệu điểm danh.</td></tr>
+                    ) : (
+                      checkinHistory.map((log, i) => (
+                        <tr key={log.id}>
+                          <td style={{ textAlign: 'center', color: 'var(--text-muted)' }}>{i + 1}</td>
+                          <td style={{ fontWeight: 500 }}>
+                            {new Date(log.checked_in_at).toLocaleString("vi-VN", { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric' })}
+                          </td>
+                          <td>
+                            <span className="badge" style={{ background: "var(--bg-secondary)", color: "var(--text-primary)" }}>
+                              {log.subject_name}
+                            </span>
+                          </td>
+                          <td style={{ color: 'var(--text-secondary)' }}>{log.shift_name}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
