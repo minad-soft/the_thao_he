@@ -20,6 +20,7 @@ export default function StudentsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterDebtOnly, setFilterDebtOnly] = useState(false);
   const [activeListFilter, setActiveListFilter] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("STAFF");
   
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -49,11 +50,12 @@ export default function StudentsPage() {
         listFilter: activeListFilter || ""
       });
 
-      const [studentsRes, schoolsRes, packagesRes, paymentMethodsRes] = await Promise.all([
+      const [studentsRes, schoolsRes, packagesRes, paymentMethodsRes, authRes] = await Promise.all([
         fetch(`/api/students?${queryParams.toString()}`),
         fetch("/api/schools"),
         fetch("/api/pricing-packages"),
-        fetch("/api/payment-methods")
+        fetch("/api/payment-methods"),
+        fetch("/api/auth/me")
       ]);
 
       if (studentsRes.ok) {
@@ -65,6 +67,10 @@ export default function StudentsPage() {
       if (schoolsRes.ok) setSchools(await schoolsRes.json());
       if (packagesRes.ok) setPackages(await packagesRes.json());
       if (paymentMethodsRes.ok) setPaymentMethods(await paymentMethodsRes.json());
+      if (authRes?.ok) {
+        const authData = await authRes.json();
+        setUserRole(authData.role || "STAFF");
+      }
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -111,7 +117,7 @@ export default function StudentsPage() {
           ].filter(Boolean).join(", ");
           
           return {
-            "STT": index + 1,
+            "Mã HS": s.stt_cung || "",
             "HỌ VÀ TÊN": s.full_name,
             "SỐ ĐIỆN THOẠI": s.phone_number || "",
             "TRƯỜNG": s.schools ? s.schools.school_name : s.other_school_name || "",
@@ -121,7 +127,7 @@ export default function StudentsPage() {
         }
 
         return {
-          "STT": index + 1,
+          "Mã HS": s.stt_cung || "",
           "Họ tên": s.full_name,
           "Ngày sinh": s.dob ? new Date(s.dob).toLocaleDateString("vi-VN") : "",
           "Giới tính": s.gender || "",
@@ -154,6 +160,54 @@ export default function StudentsPage() {
     } catch (err) {
       console.error("Export Error:", err);
       alert("Đã xảy ra lỗi khi xuất file Excel.");
+    }
+  };
+
+  const exportCardPrintingList = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        search: debouncedSearchTerm,
+        debtOnly: filterDebtOnly.toString(),
+        listFilter: activeListFilter || "",
+        export: "true"
+      });
+      const res = await fetch(`/api/students?${queryParams.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch export data");
+      
+      const { data: allStudents } = await res.json();
+
+      if (!allStudents || allStudents.length === 0) {
+        alert("Không có dữ liệu để xuất!");
+        return;
+      }
+
+      const dataToExport = allStudents.map((s: any) => {
+        const reg = s.registrations?.[0];
+        const prefs = parsePreference(s.sports_preference);
+        
+        const activeSubjects = [
+           prefs.onBoi ? "Ôn bơi" : null,
+           prefs.hocBoi ? "Học bơi" : null,
+           prefs.bongRo ? "Bóng rổ" : null,
+           prefs.cauLong ? "Cầu lông" : null
+        ].filter(Boolean).join(", ");
+
+        return {
+          "Mã HS": s.stt_cung || "",
+          "Họ Tên": s.full_name,
+          "Mã thẻ": reg?.card_code || "",
+          "Môn đăng ký nguyện vọng": activeSubjects,
+          "Trường học": s.schools ? s.schools.school_name : s.other_school_name || "",
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "DSInThe");
+      XLSX.writeFile(workbook, `DanhSachInThe_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      console.error("Export Error:", err);
+      alert("Đã xảy ra lỗi khi xuất file DS in thẻ.");
     }
   };
 
@@ -218,8 +272,11 @@ export default function StudentsPage() {
           >
             🔴 Chỉ học viên nợ phí
           </button>
+          <button className="btn" onClick={exportCardPrintingList} style={{ border: "1px solid var(--accent-indigo)", background: "rgba(99, 102, 241, 0.15)", color: "var(--accent-indigo-light)" }}>
+            <span style={{ fontSize: "16px" }}>🖨️</span> Xuất DS in thẻ
+          </button>
           <button className="btn btn-ghost" onClick={exportToExcel} style={{ border: "1px solid var(--border-color)", background: "var(--bg-glass)" }}>
-            <span style={{ fontSize: "16px" }}>📤</span> Xuất Excel
+            <span style={{ fontSize: "16px" }}>📤</span> Xuất Excel tổng
           </button>
           <ExcelUploader onImported={() => { setPage(1); fetchData(); }} />
         </div>
@@ -242,6 +299,7 @@ export default function StudentsPage() {
           totalCount={totalCount}
           limit={limit}
           onPageChange={setPage}
+          userRole={userRole}
           activeFilter={activeListFilter}
         />
       )}

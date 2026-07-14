@@ -18,6 +18,8 @@ export async function GET(req: Request) {
         created_at,
         status,
         payment_method_id,
+        refund_amount,
+        refund_method,
         pricing_packages ( id, price, package_name, subject ),
         students!inner ( id, full_name, school_id, schools ( id, school_name ) ),
         payment_methods ( id, method_name ),
@@ -80,6 +82,16 @@ export async function GET(req: Request) {
             payment_method_id: reg.payment_method_id,
             method_name: paymentMethod?.method_name || 'Chưa xác định'
           }];
+        }
+
+        // Nếu có hoàn tiền, trừ số tiền hoàn vào tổng doanh thu
+        if (reg.status === 'CANCELLED' && reg.refund_amount > 0) {
+          payments.push({
+            id: `refund-${reg.id}`,
+            amount: -Number(reg.refund_amount),
+            payment_method_id: null,
+            method_name: reg.refund_method ? `Hoàn tiền (${reg.refund_method})` : 'Hoàn tiền'
+          });
         }
 
         let regTotalRevenueForPackage = 0;

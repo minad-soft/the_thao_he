@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
+import { verifyJWT } from "@/lib/auth-utils";
 
 // PUT /api/registrations/[id]/cancel — Hủy đăng ký học viên (lưu lý do, thông tin hoàn tiền & chứng từ)
 export async function PUT(
@@ -55,6 +56,32 @@ export async function PUT(
     if (cancelErr) {
       return NextResponse.json({ error: "Lỗi thực hiện hủy đăng ký: " + cancelErr.message }, { status: 500 });
     }
+
+    // 3. Xóa các yêu cầu hoàn tiền cũ nếu có để tránh trùng lặp
+    await supabaseAdmin
+      .from("refund_requests")
+      .delete()
+      .eq("registration_id", id);
+
+    // 4. Nếu có hoàn tiền, tạo record vào refund_requests
+    const token = request.cookies.get("session_token")?.value;
+    const user = token ? await verifyJWT(token) : null;
+    
+    const insertData = {
+      registration_id: id,
+      reason: cancellation_notes || null,
+      amount_refunded: refundAmt,
+      refund_method: refundAmt > 0 ? (refund_method || null) : null,
+      receipt_image: refundAmt > 0 ? (refund_receipt_image || null) : null,
+      status: 'completed',
+      created_by: user?.id || null,
+      accountant_id: user?.id || null,
+      manager_id: user?.id || null
+    };
+
+    await supabaseAdmin
+      .from("refund_requests")
+      .insert(insertData);
 
     return NextResponse.json(updatedReg);
   } catch (err: any) {

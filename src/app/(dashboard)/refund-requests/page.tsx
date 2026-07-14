@@ -20,6 +20,9 @@ interface RefundRequest {
     student: { full_name: string };
     package: { package_name: string };
   };
+  amount_refunded?: number;
+  refund_method?: string;
+  receipt_image?: string;
   creator?: { full_name: string };
   accountant?: { full_name: string };
   manager?: { full_name: string };
@@ -180,6 +183,16 @@ export default function RefundRequestsAdminPage() {
           </span>
           Quản lý Yêu cầu Hoàn tiền
         </h1>
+        <div style={{
+          background: "var(--gradient-success)",
+          color: "white",
+          padding: "8px 16px",
+          borderRadius: "8px",
+          fontWeight: 600,
+          boxShadow: "var(--shadow-glow-emerald)"
+        }}>
+          Tổng đã hoàn: {requests.filter(r => r.status === 'completed').reduce((sum, r) => sum + (Number(r.amount_refunded) || 0), 0).toLocaleString()} VNĐ
+        </div>
       </div>
 
       <div className="card" style={{ padding: "0" }}>
@@ -188,8 +201,9 @@ export default function RefundRequestsAdminPage() {
             <thead style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--bg-secondary)" }}>
               <tr>
                 <th style={{ width: "22%" }}>Học viên / Gói</th>
-                <th style={{ width: "20%" }}>Thông tin Phụ huynh</th>
-                <th style={{ width: "22%" }}>Thông Ngân hàng</th>
+                <th style={{ width: "16%" }}>Thông tin Phụ huynh</th>
+                <th style={{ width: "20%" }}>Thông Ngân hàng / Nhận tiền</th>
+                <th style={{ width: "14%" }}>Số tiền hoàn</th>
                 <th style={{ width: "12%" }}>Trạng thái</th>
                 <th style={{ width: "12%" }}>Ngày tạo</th>
                 <th style={{ width: "12%" }}>Hành động</th>
@@ -226,7 +240,23 @@ export default function RefundRequestsAdminPage() {
                           <span>{req.bank_account}</span>
                         </div>
                       </>
-                    ) : "—"}
+                    ) : (
+                      <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
+                        {req.refund_method ? `Nhận tiền qua: ${req.refund_method}` : "—"}
+                      </span>
+                    )}
+                  </td>
+                  <td data-label="Số tiền hoàn">
+                    <strong style={{ color: "var(--accent-rose)" }}>
+                      {req.amount_refunded ? req.amount_refunded.toLocaleString() + " đ" : "—"}
+                    </strong>
+                    {req.receipt_image && (
+                      <div style={{ marginTop: "4px" }}>
+                        <a href={req.receipt_image} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "var(--accent-indigo-light)", textDecoration: "underline" }}>
+                          Xem biên lai
+                        </a>
+                      </div>
+                    )}
                   </td>
                   <td data-label="Trạng thái">
                     {getStatusLabel(req.status)}

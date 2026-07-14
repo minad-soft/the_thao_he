@@ -46,6 +46,7 @@ interface StudentRecord {
     }>;
   }>;
   student_preferred_shifts?: Array<{ shift_id: string }>;
+  stt_cung?: number;
 }
 
 interface StudentsTableProps {
@@ -60,6 +61,7 @@ interface StudentsTableProps {
   totalCount?: number;
   limit?: number;
   onPageChange?: (page: number) => void;
+  userRole?: string;
   activeFilter?: string | null;
 }
 
@@ -75,6 +77,7 @@ export default function StudentsTable({
   totalCount = 0,
   limit = 20,
   onPageChange,
+  userRole = "STAFF",
   activeFilter = null
 }: StudentsTableProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -295,6 +298,7 @@ export default function StudentsTable({
   ];
 
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+    stt_cung: true,
     full_name: true,
     dob: true,
     gender: true,
@@ -329,6 +333,7 @@ export default function StudentsTable({
   const actualVisibleColumns = useMemo(() => {
     if (!activeFilter || activeFilter === 'DA_CHON' || activeFilter === 'CHUA_CHON') return visibleColumns;
     return {
+      stt_cung: true,
       full_name: true,
       dob: false,
       gender: false,
@@ -1097,7 +1102,7 @@ export default function StudentsTable({
             </button>
             {showColumnMenu && (
               <div style={{ position: 'absolute', left: 0, top: '100%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8, padding: 12, zIndex: 9999, minWidth: 160, boxShadow: '0 4px 20px rgba(0,0,0,0.8)', marginTop: 8, maxHeight: '60vh', overflowY: 'auto' }}>
-                 {availableColumns.filter(col => col.id !== 'full_name').map(col => (
+                 {availableColumns.filter(col => col.id !== 'full_name' && col.id !== 'stt_cung').map(col => (
                     <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-primary)' }}>
                       <input 
                         type="checkbox" 
@@ -1127,7 +1132,8 @@ export default function StudentsTable({
                 <table className="data-table data-table-mobile-card">
                   <thead style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--bg-secondary)" }}>
                     <tr>
-                  {actualVisibleColumns.full_name && <th>Họ tên</th>}
+                  {actualVisibleColumns.stt_cung && <th style={{ width: "60px", minWidth: "60px" }}>Mã HS</th>}
+                  {actualVisibleColumns.full_name && <th style={{ position: "sticky", left: "60px", zIndex: 30, background: "var(--bg-secondary)", borderLeft: "1px solid var(--border-color)" }}>Họ tên</th>}
                   {actualVisibleColumns.dob && <th>Ngày sinh</th>}
                   {actualVisibleColumns.gender && <th>Giới tính</th>}
                   {actualVisibleColumns.class_name && <th>Lớp</th>}
@@ -1159,8 +1165,21 @@ export default function StudentsTable({
                   const reg = student.registrations?.[0];
                   return (
                     <tr key={student.id}>
+                      {actualVisibleColumns.stt_cung && (
+                        <td data-label="Mã HS" style={{ textAlign: "center", fontWeight: "bold" }}>
+                          {student.stt_cung || "—"}
+                        </td>
+                      )}
                       {actualVisibleColumns.full_name && (
-                        <td data-label="Họ tên" style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                        <td data-label="Họ tên" style={{ 
+                          color: "var(--text-primary)", 
+                          fontWeight: 500,
+                          position: "sticky",
+                          left: "60px",
+                          zIndex: 10,
+                          background: "var(--bg-secondary)",
+                          borderLeft: "1px solid var(--border-color)"
+                        }}>
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(student)}
@@ -2271,6 +2290,11 @@ export default function StudentsTable({
                 
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div style={{ fontSize: "13px" }}>
+                    <span style={{ color: "var(--text-muted)", display: "inline-block", width: "110px" }}>Mã HS:</span>
+                    <strong style={{ color: "var(--accent-indigo)", fontSize: "14px" }}>{detailsStudent.stt_cung || "—"}</strong>
+                  </div>
+
+                  <div style={{ fontSize: "13px" }}>
                     <span style={{ color: "var(--text-muted)", display: "inline-block", width: "110px" }}>Họ tên:</span>
                     <strong style={{ color: "var(--text-primary)", fontSize: "14px" }}>{detailsStudent.full_name}</strong>
                   </div>
@@ -2553,12 +2577,12 @@ export default function StudentsTable({
                       </div>
                     )}
 
-                    {/* Nút Tạo link hủy đăng ký & hoàn tiền */}
-                    {reg.status === "ACTIVE" && !pendingRefundTokens.has(reg.id) && (
+                    {/* Nút Hủy đăng ký & hoàn tiền Offline (chỉ hiện cho ADMIN/ACCOUNTANT) */}
+                    {reg.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "ACCOUNTANT") && (
                       <div style={{ borderTop: "1px dashed var(--border-color)", marginTop: "12px", paddingTop: "12px" }}>
                         <button
                           type="button"
-                          onClick={() => handleCreateRefundLink(reg.id, detailsStudent?.full_name || "")}
+                          onClick={() => handleCancelFromDetails()}
                           style={{
                             width: "100%",
                             padding: "10px 16px",
@@ -2575,25 +2599,8 @@ export default function StudentsTable({
                             gap: "8px",
                           }}
                         >
-                          🔗 Tạo link hủy đăng ký & hoàn tiền
+                          ❌ Hủy đăng ký & Hoàn tiền
                         </button>
-                      </div>
-                    )}
-                    {reg.status === "ACTIVE" && pendingRefundTokens.has(reg.id) && (
-                      <div style={{ borderTop: "1px dashed var(--border-color)", marginTop: "12px", paddingTop: "12px" }}>
-                        <div style={{
-                          width: "100%",
-                          padding: "10px 16px",
-                          background: "rgba(245, 158, 11, 0.1)",
-                          border: "1px solid rgba(245, 158, 11, 0.3)",
-                          borderRadius: "8px",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          color: "var(--accent-amber)",
-                          textAlign: "center",
-                        }}>
-                          ⏳ Đang chờ hủy đăng ký & hoàn tiền
-                        </div>
                       </div>
                     )}
                   </div>

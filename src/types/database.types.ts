@@ -36,6 +36,7 @@ export interface Student {
   notes: string | null;
   sports_preference: string | null;
   created_at: string;
+  stt_cung?: number;
 }
 
 export interface Registration {
