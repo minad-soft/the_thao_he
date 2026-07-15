@@ -60,9 +60,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Trang Báo cáo thống kê (/reports) -> Chỉ dành cho ADMIN và ACCOUNTANT
+  // Trang Báo cáo thống kê (/reports) -> Chỉ dành cho ADMIN, ACCOUNTANT và STAFF
   if (pathname.startsWith("/reports")) {
-    if (userRole !== "ADMIN" && userRole !== "ACCOUNTANT") {
+    if (userRole !== "ADMIN" && userRole !== "ACCOUNTANT" && userRole !== "STAFF") {
       const redirectUrl = new URL("/", request.url);
       redirectUrl.searchParams.set("error", "unauthorized");
       return NextResponse.redirect(redirectUrl);
@@ -80,6 +80,16 @@ export async function middleware(request: NextRequest) {
 
   // Bảo vệ các API nghiệp vụ (chỉ cho phép gọi API khi đã đăng nhập)
   if (pathname.startsWith("/api/")) {
+    // Chặn quyền XÓA và HỦY đối với nhân viên (STAFF)
+    if (userRole === "STAFF") {
+      if (request.method === "DELETE") {
+        return NextResponse.json({ error: "Nhân viên không có quyền xóa" }, { status: 403 });
+      }
+      if (pathname.includes("/cancel")) {
+        return NextResponse.json({ error: "Nhân viên không có quyền hủy đăng ký" }, { status: 403 });
+      }
+    }
+
     // Vì Middleware chạy trước cả API Routes nên chúng ta có thể chặn các API Routes nhạy cảm từ client
     // Ví dụ chặn /api/staffs và /api/settings nếu không phải ADMIN
     if (pathname.startsWith("/api/staffs") || pathname.startsWith("/api/settings")) {

@@ -2266,14 +2266,16 @@ export default function StudentsTable({
             >
               ✏️ Sửa thông tin
             </button>
-            <button 
-              type="button"
-              className="btn btn-ghost" 
-              style={{ color: "var(--accent-rose)", border: "1px solid rgba(244, 63, 94, 0.2)" }}
-              onClick={handleDeleteFromDetails}
-            >
-              🗑️ Xóa học viên
-            </button>
+            {userRole !== "STAFF" && (
+              <button 
+                type="button"
+                className="btn btn-ghost" 
+                style={{ color: "var(--accent-rose)", border: "1px solid rgba(244, 63, 94, 0.2)" }}
+                onClick={handleDeleteFromDetails}
+              >
+                🗑️ Xóa học viên
+              </button>
+            )}
             <button type="button" className="btn btn-primary" onClick={() => setIsDetailsModalOpen(false)}>
               Đóng
             </button>

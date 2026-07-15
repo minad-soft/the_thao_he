@@ -53,7 +53,7 @@ const navItems: NavGroup[] = [
   {
     section: "Báo cáo",
     items: [
-      { href: "/reports", label: "Thống kê", icon: "📈", roles: ["ADMIN", "ACCOUNTANT"] },
+      { href: "/reports", label: "Thống kê", icon: "📈", roles: ["ADMIN", "ACCOUNTANT", "STAFF"] },
       { href: "/refund-requests", label: "Hoàn tiền", icon: "💸", roles: ["ADMIN", "ACCOUNTANT"] },
     ],
   },
