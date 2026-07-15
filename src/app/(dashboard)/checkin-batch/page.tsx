@@ -34,6 +34,7 @@ interface ShiftStudent {
   registration_id: string | null;
   remaining_sessions: number;
   has_active_registration: boolean;
+  registration_status?: string;
 }
 
 export default function BatchCheckinPage() {
