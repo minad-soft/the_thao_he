@@ -139,7 +139,7 @@ export interface Staff {
   full_name: string;
   username: string;
   phone_number: string | null;
-  role: 'ADMIN' | 'STAFF' | 'ACCOUNTANT';
+  role: 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN';
   password?: string;
   status: 'ACTIVE' | 'INACTIVE';
   created_at: string;

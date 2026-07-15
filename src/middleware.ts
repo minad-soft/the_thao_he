@@ -69,6 +69,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Chặn CHECKIN truy cập các trang không thuộc phận sự
+  if (pathname.startsWith("/registration") || pathname.startsWith("/students")) {
+    if (userRole === "CHECKIN") {
+      const redirectUrl = new URL("/", request.url);
+      redirectUrl.searchParams.set("error", "unauthorized");
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   // Bảo vệ các API nghiệp vụ (chỉ cho phép gọi API khi đã đăng nhập)
   if (pathname.startsWith("/api/")) {
     // Vì Middleware chạy trước cả API Routes nên chúng ta có thể chặn các API Routes nhạy cảm từ client

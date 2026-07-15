@@ -18,7 +18,7 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
     full_name: "",
     username: "",
     phone_number: "",
-    role: "STAFF" as 'ADMIN' | 'STAFF' | 'ACCOUNTANT',
+    role: "STAFF" as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN',
     password: "",
     status: "ACTIVE" as 'ACTIVE' | 'INACTIVE',
   });
@@ -93,6 +93,8 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
         return "badge-rose";
       case "ACCOUNTANT":
         return "badge-purple";
+      case "CHECKIN":
+        return "badge-emerald";
       default:
         return "badge-indigo";
     }
@@ -104,6 +106,8 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
         return "Quản trị viên";
       case "ACCOUNTANT":
         return "Kế toán";
+      case "CHECKIN":
+        return "NV Check-in";
       default:
         return "Nhân viên";
     }
@@ -259,11 +263,12 @@ export default function StaffTable({ staffs, onStaffUpdated, onStaffDeleted }: S
             className="form-input"
             value={formData.role}
             onChange={(e) =>
-              setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' })
+              setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN' })
             }
           >
             <option value="STAFF">Nhân viên</option>
             <option value="ACCOUNTANT">Kế toán</option>
+            <option value="CHECKIN">NV Check-in</option>
             <option value="ADMIN">Quản trị viên</option>
           </select>
         </div>

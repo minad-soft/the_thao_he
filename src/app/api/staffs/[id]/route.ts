@@ -16,7 +16,7 @@ export async function PUT(
     if (!full_name?.trim()) {
       return NextResponse.json({ error: "Họ tên không được để trống" }, { status: 400 });
     }
-    if (!role || !["ADMIN", "STAFF", "ACCOUNTANT"].includes(role)) {
+    if (!role || !["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"].includes(role)) {
       return NextResponse.json({ error: "Phân quyền không hợp lệ" }, { status: 400 });
     }
     if (!status || !["ACTIVE", "INACTIVE"].includes(status)) {

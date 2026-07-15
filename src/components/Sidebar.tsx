@@ -27,7 +27,7 @@ const navItems: NavGroup[] = [
   {
     section: "Tổng quan",
     items: [
-      { href: "/", label: "Dashboard", icon: "📊", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] },
+      { href: "/", label: "Dashboard", icon: "📊", roles: ["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"] },
     ],
   },
   {
@@ -40,10 +40,10 @@ const navItems: NavGroup[] = [
         href: "/checkin", 
         label: "Check-in", 
         icon: "🎫",
-        roles: ["ADMIN", "STAFF", "ACCOUNTANT"],
+        roles: ["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"],
         subItems: [
-          { href: "/checkin-batch", label: "Check-in Lớp", icon: "📋", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] },
-          { href: "/checkin-history", label: "Lịch sử Điểm danh", icon: "🕒", roles: ["ADMIN", "STAFF", "ACCOUNTANT", "ACCOUNTANT"] }
+          { href: "/checkin-batch", label: "Check-in Lớp", icon: "📋", roles: ["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"] },
+          { href: "/checkin-history", label: "Lịch sử Điểm danh", icon: "🕒", roles: ["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"] }
         ]
       },
       { href: "#", label: "Huấn luyện viên", icon: "🏃", roles: ["ADMIN", "STAFF", "ACCOUNTANT"] },
@@ -197,9 +197,9 @@ export default function Sidebar() {
                 {user.full_name}
               </div>
               <span className={`badge ${
-                user.role === 'ADMIN' ? 'badge-rose' : user.role === 'ACCOUNTANT' ? 'badge-amber' : 'badge-indigo'
+                user.role === 'ADMIN' ? 'badge-rose' : user.role === 'ACCOUNTANT' ? 'badge-amber' : user.role === 'CHECKIN' ? 'badge-emerald' : 'badge-indigo'
               }`} style={{ fontSize: "10px", padding: "2px 8px", marginTop: "4px" }}>
-                {user.role === 'ADMIN' ? 'Quản trị viên' : user.role === 'ACCOUNTANT' ? 'Kế toán' : 'Nhân viên'}
+                {user.role === 'ADMIN' ? 'Quản trị viên' : user.role === 'ACCOUNTANT' ? 'Kế toán' : user.role === 'CHECKIN' ? 'NV Check-in' : 'Nhân viên'}
               </span>
             </div>
           </div>

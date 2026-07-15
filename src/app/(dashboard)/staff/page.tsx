@@ -19,7 +19,7 @@ export default function StaffPage() {
     full_name: "",
     username: "",
     phone_number: "",
-    role: "STAFF" as 'ADMIN' | 'STAFF' | 'ACCOUNTANT',
+    role: "STAFF" as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN',
     password: "",
     status: "ACTIVE" as 'ACTIVE' | 'INACTIVE',
   });
@@ -152,6 +152,7 @@ export default function StaffPage() {
               <option value="ALL">Tất cả chức vụ</option>
               <option value="STAFF">Nhân viên</option>
               <option value="ACCOUNTANT">Kế toán</option>
+              <option value="CHECKIN">NV Check-in</option>
               <option value="ADMIN">Quản trị viên</option>
             </select>
           </div>
@@ -252,11 +253,12 @@ export default function StaffPage() {
             className="form-select"
             value={formData.role}
             onChange={(e) =>
-              setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' })
+              setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN' })
             }
           >
             <option value="STAFF">Nhân viên</option>
             <option value="ACCOUNTANT">Kế toán</option>
+            <option value="CHECKIN">NV Check-in</option>
             <option value="ADMIN">Quản trị viên</option>
           </select>
         </div>

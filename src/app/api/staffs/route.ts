@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!password?.trim()) {
       return NextResponse.json({ error: "Mật khẩu không được để trống" }, { status: 400 });
     }
-    if (!role || !["ADMIN", "STAFF", "ACCOUNTANT"].includes(role)) {
+    if (!role || !["ADMIN", "STAFF", "ACCOUNTANT", "CHECKIN"].includes(role)) {
       return NextResponse.json({ error: "Phân quyền không hợp lệ" }, { status: 400 });
     }
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       full_name: full_name.trim(),
       username: username.trim(),
       phone_number: phone_number?.trim() || null,
-      role: role as 'ADMIN' | 'STAFF' | 'ACCOUNTANT',
+      role: role as 'ADMIN' | 'STAFF' | 'ACCOUNTANT' | 'CHECKIN',
       password: await hashPassword(password),
       status: (status || "ACTIVE") as 'ACTIVE' | 'INACTIVE',
     };
