@@ -129,7 +129,8 @@ export default function StudentsTable({
     remaining_sessions: 0,
     registration_id: "",
     is_card_issued: false,
-    card_reissue_count: 0
+    card_reissue_count: 0,
+    card_code: ""
   });
   const [error, setError] = useState("");
 
@@ -598,6 +599,7 @@ export default function StudentsTable({
       registration_id: reg?.id || "",
       is_card_issued: reg?.is_card_issued || false,
       card_reissue_count: reg?.card_reissue_count || 0,
+      card_code: reg?.card_code || "",
       sports_preference: student.sports_preference || "",
       preferred_shift_ids: student.student_preferred_shifts ? student.student_preferred_shifts.map(s => s.shift_id) : [],
     });
@@ -1872,6 +1874,19 @@ export default function StudentsTable({
                 <option value="CANCELLED">Đã hủy / Hoàn phí</option>
               </select>
             </div>
+
+            {(userRole === "ADMIN" || userRole === "ACCOUNTANT") && (
+              <div className="form-group">
+                <label className="form-label">Mã thẻ học viên (Quyền Admin/Kế toán)</label>
+                <input
+                  className="form-input"
+                  placeholder="VD: HE26XXX..."
+                  value={formData.card_code}
+                  onChange={(e) => setFormData({ ...formData, card_code: e.target.value })}
+                />
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Trạng thái thẻ nhựa</label>
               <div style={{ display: "flex", gap: "12px", alignItems: "center", background: "var(--bg-glass-hover)", padding: "12px", borderRadius: "6px" }}>

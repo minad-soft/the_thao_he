@@ -9,7 +9,8 @@ export async function PUT(
   const body = await request.json();
   const { 
     full_name, phone_number, dob, gender, class_name, school_id, other_school_name, notes,
-    package_id, receipt_number, status, remaining_sessions, amount_paid, payments, sports_preference, preferred_shift_ids 
+    package_id, receipt_number, status, remaining_sessions, amount_paid, payments, sports_preference, preferred_shift_ids,
+    card_code
   } = body;
 
   // Validation
@@ -102,7 +103,8 @@ export async function PUT(
         status, 
         remaining_sessions,
         amount_paid: totalPaid,
-        debt_amount: debtAmount
+        debt_amount: debtAmount,
+        ...(card_code !== undefined && { card_code: card_code.trim() })
       })
       .eq("id", regId);
       
