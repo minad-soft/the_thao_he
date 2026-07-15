@@ -13,6 +13,7 @@ interface Shift {
   room_name?: string;
   days_of_week?: string[];
   active_batch_id?: string | null;
+  subject?: string;
 }
 
 interface CheckinEntry {
