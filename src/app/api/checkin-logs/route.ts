@@ -8,7 +8,15 @@ export async function GET(request: Request) {
 
   let query = supabaseAdmin
     .from("checkin_logs")
-    .select("*")
+    .select(`
+      *,
+      registrations(
+        students(
+          full_name,
+          sports_preference
+        )
+      )
+    `)
     .order("checked_in_at", { ascending: false });
 
   if (registrationId) {

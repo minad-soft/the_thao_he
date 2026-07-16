@@ -57,9 +57,26 @@ export async function DELETE(
     .eq("id", checkinLogId);
 
   if (delErr) {
-    // If delete fails, it's problematic as sessions are already added. Ideally this would be an RPC transaction.
-    // However, following the existing pattern we return the error.
     return NextResponse.json({ error: "Lỗi xóa log check-in: " + delErr.message }, { status: 500 });
+  }
+
+  // 5. Update subsequent checkin logs (shift their session counts by +1)
+  const { data: subsequentLogs, error: subErr } = await supabaseAdmin
+    .from("checkin_logs")
+    .select("id, sessions_before, sessions_after")
+    .eq("registration_id", registration.id)
+    .gt("checked_in_at", log.checked_in_at);
+
+  if (!subErr && subsequentLogs && subsequentLogs.length > 0) {
+    await Promise.all(subsequentLogs.map((subLog) => 
+      supabaseAdmin
+        .from("checkin_logs")
+        .update({
+          sessions_before: subLog.sessions_before + 1,
+          sessions_after: subLog.sessions_after + 1
+        })
+        .eq("id", subLog.id)
+    ));
   }
 
   return NextResponse.json({ success: true, message: "Đã hủy check-in và hoàn 1 buổi học." });
