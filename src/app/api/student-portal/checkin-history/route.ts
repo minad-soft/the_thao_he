@@ -35,12 +35,6 @@ export async function GET(req: Request) {
       .select(`
         id,
         checked_in_at,
-        batch_checkins (
-          shifts (
-            shift_name,
-            subject
-          )
-        ),
         registrations (
           pricing_packages (
             subject
@@ -51,14 +45,15 @@ export async function GET(req: Request) {
       .order("checked_in_at", { ascending: false });
 
     if (logsError) {
+      console.error("logsError", logsError);
       return NextResponse.json({ error: "Lỗi hệ thống" }, { status: 500 });
     }
 
     const results = logs.map((log: any) => ({
       id: log.id,
       checked_in_at: log.checked_in_at,
-      shift_name: log.batch_checkins?.shifts?.shift_name || "Khách vãng lai / Điểm danh nhanh",
-      subject_name: log.batch_checkins?.shifts?.subject || log.registrations?.pricing_packages?.subject || "—",
+      shift_name: "Điểm danh nhanh",
+      subject_name: log.registrations?.pricing_packages?.subject || "—",
     }));
 
     return NextResponse.json({ data: results });

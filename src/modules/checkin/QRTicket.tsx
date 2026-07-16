@@ -38,11 +38,6 @@ export default function QRTicket({
         <span className="qr-ticket-title">CHECK-IN THÀNH CÔNG</span>
       </div>
 
-      <div className="qr-ticket-code-wrapper">
-        <div className="qr-ticket-code">{ticketCode}</div>
-        <div className="qr-ticket-code-label">Mã vé cổng</div>
-      </div>
-
       <div className="qr-ticket-info">
         <div className="qr-ticket-row">
           <span className="qr-ticket-label">Học viên</span>

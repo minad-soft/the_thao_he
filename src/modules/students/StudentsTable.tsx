@@ -176,10 +176,16 @@ export default function StudentsTable({
     cancellation_notes: "",
   });
 
-  // Student Details Modal States (Xem chi tiết học viên)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [detailsStudent, setDetailsStudent] = useState<StudentRecord | null>(null);
   const [isDetailsImageUploading, setIsDetailsImageUploading] = useState(false);
+
+  // Checkin History Modal States
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [historyStudentName, setHistoryStudentName] = useState("");
+
 
   // Register Subject Modal States (Đăng ký thêm môn)
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -565,6 +571,68 @@ export default function StudentsTable({
     if (!detailsStudent) return;
     setIsDetailsModalOpen(false);
     handleDelete(detailsStudent.id, detailsStudent.full_name);
+  };
+
+  const handleOpenHistory = async () => {
+    if (!detailsStudent) return;
+    const reg = detailsStudent.registrations?.[0];
+    if (!reg) {
+      alert("Học viên chưa có đăng ký hợp lệ.");
+      return;
+    }
+    
+    setHistoryStudentName(detailsStudent.full_name);
+    setIsHistoryLoading(true);
+    setIsHistoryModalOpen(true);
+    
+    try {
+      const res = await fetch(`/api/checkin-logs?registration_id=${reg.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistoryLogs(data);
+      } else {
+        alert("Không thể tải lịch sử check-in.");
+      }
+    } catch {
+      alert("Lỗi kết nối.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const handleCancelCheckin = async (logId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn hủy lượt check-in này và hoàn lại 1 buổi học cho học viên?")) return;
+    
+    setIsHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/checkin-logs/${logId}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert("Đã hủy check-in thành công.");
+        setHistoryLogs(prev => prev.filter(log => log.id !== logId));
+        if (onRefresh) onRefresh();
+        
+        // Cập nhật state nội bộ
+        if (detailsStudent && detailsStudent.registrations?.[0]) {
+           const currentReg = detailsStudent.registrations[0];
+           const newReg = { 
+              ...currentReg, 
+              remaining_sessions: (currentReg.remaining_sessions || 0) + 1,
+              status: currentReg.status === "EXPIRED" && (currentReg.remaining_sessions || 0) + 1 > 0 ? "ACTIVE" : currentReg.status
+           };
+           setDetailsStudent({ ...detailsStudent, registrations: [newReg, ...detailsStudent.registrations.slice(1)] });
+        }
+      } else {
+        alert(data.error || "Không thể hủy check-in.");
+      }
+    } catch {
+      alert("Lỗi kết nối.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
   };
 
   // Edit Handlers
@@ -2291,6 +2359,14 @@ export default function StudentsTable({
                 🗑️ Xóa học viên
               </button>
             )}
+            <button 
+              type="button"
+              className="btn btn-ghost" 
+              onClick={handleOpenHistory}
+              style={{ border: "1px solid var(--border-color)", color: "var(--accent-indigo)" }}
+            >
+              📅 Lịch sử Check-in
+            </button>
             <button type="button" className="btn btn-primary" onClick={() => setIsDetailsModalOpen(false)}>
               Đóng
             </button>
@@ -2850,6 +2926,82 @@ export default function StudentsTable({
             </div>
           ) : null}
         </div>
+      </Modal>
+
+      {/* Modal Lịch sử Check-in */}
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        title={`📅 Lịch sử Check-in - ${historyStudentName}`}
+        footer={
+          <button className="btn btn-primary" onClick={() => setIsHistoryModalOpen(false)}>
+            Đóng
+          </button>
+        }
+      >
+        {isHistoryLoading ? (
+          <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)" }}>Đang tải...</div>
+        ) : historyLogs.length === 0 ? (
+          <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)" }}>Học viên chưa có lịch sử check-in.</div>
+        ) : (
+          <div style={{ maxHeight: "400px", overflow: "auto" }}>
+            <table className="data-table">
+              <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--bg-secondary)" }}>
+                <tr>
+                  <th>Thời gian</th>
+                  <th>Mã thẻ</th>
+                  <th>Buổi</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historyLogs.map((log) => (
+                  <tr key={log.id}>
+                    <td>
+                      {new Date(log.checked_in_at).toLocaleString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric"
+                      })}
+                    </td>
+                    <td>
+                      <span style={{
+                        fontFamily: "'Courier New', monospace",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: "var(--accent-indigo-light)",
+                      }}>
+                        {log.card_code}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ color: "var(--text-muted)" }}>{log.sessions_before}</span>
+                      {" → "}
+                      <span style={{
+                        fontWeight: 700,
+                        color: log.sessions_after <= 2 ? "var(--accent-rose)" : "var(--accent-emerald-light)",
+                      }}>
+                        {log.sessions_after}
+                      </span>
+                    </td>
+                    <td>
+                      <button 
+                        className="btn btn-ghost btn-sm" 
+                        style={{ color: "var(--accent-rose)", padding: "2px 8px", fontSize: "12px", border: "1px solid rgba(244, 63, 94, 0.2)" }}
+                        onClick={() => handleCancelCheckin(log.id)}
+                      >
+                        Hủy
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Modal>
     </>
   );

@@ -2,15 +2,24 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
 // GET /api/checkin-logs — Lấy lịch sử check-in (mặc định hôm nay)
-export async function GET() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const registrationId = searchParams.get("registration_id");
 
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("checkin_logs")
     .select("*")
-    .gte("checked_in_at", today.toISOString())
     .order("checked_in_at", { ascending: false });
+
+  if (registrationId) {
+    query = query.eq("registration_id", registrationId);
+  } else {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    query = query.gte("checked_in_at", today.toISOString());
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

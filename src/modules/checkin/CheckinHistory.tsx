@@ -24,7 +24,6 @@ export default function CheckinHistory({ logs }: CheckinHistoryProps) {
               <tr>
                 <th>Thời gian</th>
                 <th>Mã thẻ</th>
-                <th>Mã vé</th>
                 <th>Buổi</th>
               </tr>
             </thead>
@@ -48,16 +47,7 @@ export default function CheckinHistory({ logs }: CheckinHistoryProps) {
                       {log.card_code}
                     </span>
                   </td>
-                  <td>
-                    <span style={{
-                      fontFamily: "'Courier New', monospace",
-                      fontWeight: 600,
-                      fontSize: 13,
-                      color: "var(--accent-emerald-light)",
-                    }}>
-                      {log.ticket_code}
-                    </span>
-                  </td>
+
                   <td>
                     <span style={{ color: "var(--text-muted)" }}>{log.sessions_before}</span>
                     {" → "}
