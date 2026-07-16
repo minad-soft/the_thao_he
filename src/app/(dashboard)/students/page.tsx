@@ -17,7 +17,7 @@ export default function StudentsPage() {
   const [preferenceStats, setPreferenceStats] = useState<Record<string, number>>({});
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [inputSearchTerm, setInputSearchTerm] = useState("");
   const [filterDebtOnly, setFilterDebtOnly] = useState(false);
   const [activeListFilter, setActiveListFilter] = useState<string | null>(null);
   const [activeSchoolFilter, setActiveSchoolFilter] = useState<string | null>(null);
@@ -27,18 +27,11 @@ export default function StudentsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const limit = 25;
 
-  // Debounce search term
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
 
-  // Reset page to 1 when search or filter changes
+  // Reset page to 1 when filter changes
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
+  }, [searchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -46,7 +39,7 @@ export default function StudentsPage() {
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        search: debouncedSearchTerm,
+        search: searchTerm,
         debtOnly: filterDebtOnly.toString(),
         listFilter: activeListFilter || "",
         schoolFilter: activeSchoolFilter || ""
@@ -78,7 +71,7 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, debouncedSearchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
+  }, [page, searchTerm, filterDebtOnly, activeListFilter, activeSchoolFilter]);
 
   useEffect(() => {
     fetchData();
@@ -87,7 +80,7 @@ export default function StudentsPage() {
   const exportToExcel = async () => {
     try {
       const queryParams = new URLSearchParams({
-        search: debouncedSearchTerm,
+        search: searchTerm,
         debtOnly: filterDebtOnly.toString(),
         listFilter: activeListFilter || "",
         schoolFilter: activeSchoolFilter || "",
@@ -169,7 +162,7 @@ export default function StudentsPage() {
   const exportCardPrintingList = async () => {
     try {
       const queryParams = new URLSearchParams({
-        search: debouncedSearchTerm,
+        search: searchTerm,
         debtOnly: filterDebtOnly.toString(),
         listFilter: activeListFilter || "",
         schoolFilter: activeSchoolFilter || "",
@@ -271,8 +264,14 @@ export default function StudentsPage() {
             <input
               className="form-input"
               placeholder="Tìm tên, SĐT, mã thẻ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={inputSearchTerm}
+              onChange={(e) => setInputSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setSearchTerm(inputSearchTerm);
+                  setPage(1);
+                }
+              }}
             />
           </div>
           <button

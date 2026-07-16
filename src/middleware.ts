@@ -24,6 +24,43 @@ export async function middleware(request: NextRequest) {
   // Xác thực token
   const user = token ? await verifyJWT(token) : null;
 
+  if (user && user.passHash) {
+    // Edge-compatible Supabase client is needed here. But wait, we can just use fetch to Supabase REST API directly to avoid importing client issues in edge.
+    // Actually @supabase/supabase-js is edge compatible.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    
+    // Quick fetch to Supabase REST API using standard fetch for minimal edge overhead
+    const res = await fetch(`${supabaseUrl}/rest/v1/staffs?username=eq.${encodeURIComponent(user.username)}&select=password`, {
+      headers: {
+        'apikey': supabaseServiceRoleKey,
+        'Authorization': `Bearer ${supabaseServiceRoleKey}`,
+      },
+      next: { revalidate: 0 } // no cache
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const currentPassword = data[0].password;
+        if (currentPassword && currentPassword.substring(0, 10) !== user.passHash) {
+          // Password changed -> invalidate session
+          if (pathname.startsWith("/api/")) {
+            const response = NextResponse.json({ error: "Phiên đăng nhập đã hết hạn do thay đổi mật khẩu" }, { status: 401 });
+            response.cookies.delete("session_token");
+            return response;
+          } else {
+            const redirectUrl = new URL("/login", request.url);
+            redirectUrl.searchParams.set("error", "session_expired");
+            const response = NextResponse.redirect(redirectUrl);
+            response.cookies.delete("session_token");
+            return response;
+          }
+        }
+      }
+    }
+  }
+
   // 2. Xử lý khi truy cập vào trang Đăng nhập (/login)
   if (pathname === "/login") {
     if (user) {

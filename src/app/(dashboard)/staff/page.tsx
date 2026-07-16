@@ -10,6 +10,7 @@ export default function StaffPage() {
   const [staffs, setStaffs] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [inputSearchTerm, setInputSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -138,8 +139,13 @@ export default function StaffPage() {
             <input
               className="form-input"
               placeholder="Tìm kiếm theo Tên, Username, SĐT..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={inputSearchTerm}
+              onChange={(e) => setInputSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setSearchTerm(inputSearchTerm);
+                }
+              }}
             />
           </div>
           <div style={{ flex: "0 0 200px" }}>

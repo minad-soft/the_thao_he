@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       full_name: staff.full_name,
       username: staff.username,
       role: staff.role,
+      passHash: hashedInput.substring(0, 10),
     });
 
     // Cấu hình Cookie
