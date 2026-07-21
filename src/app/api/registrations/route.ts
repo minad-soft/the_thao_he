@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
+import { verifyJWT } from "@/lib/auth-utils";
 
 /**
  * Sinh mã thẻ theo format: HE26 + school_code + 6 ký tự ngẫu nhiên (A-Z0-9)
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
   const { 
     student_id, full_name, dob, gender, class_name, phone_number, school_id, 
     other_school_name, notes, package_id, receipt_number, amount_paid, payments,
-    receipt_images
+    receipt_images, discount_type, discount_amount
   } = body;
 
   // Validation
@@ -114,14 +115,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Không tìm thấy gói học" }, { status: 400 });
   }
 
-  // Validate amounts
+  // Validate amounts and calculate discount
+  let finalPrice = pkg.price;
+  
+  if (discount_amount && Number(discount_amount) > 0) {
+    // Chỉ admin mới được phép giảm giá
+    const token = request.cookies.get("session_token")?.value;
+    const user = token ? await verifyJWT(token) : null;
+    
+    if (user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Chỉ quản trị viên mới được phép áp dụng giảm giá" }, { status: 403 });
+    }
+
+    const discountVal = Number(discount_amount);
+    if (discount_type === 'PERCENTAGE') {
+      finalPrice = Math.max(0, pkg.price * (1 - discountVal / 100));
+    } else if (discount_type === 'FIXED') {
+      finalPrice = Math.max(0, pkg.price - discountVal);
+    }
+  }
+
   const totalPaid = Number(amount_paid) || 0;
   if (totalPaid < 0) {
     return NextResponse.json({ error: "Số tiền thanh toán không được âm" }, { status: 400 });
   }
-  if (totalPaid > pkg.price) {
+  if (totalPaid > finalPrice) {
     return NextResponse.json(
-      { error: `Số tiền thanh toán (${totalPaid}) vượt quá giá trị gói học (${pkg.price})` },
+      { error: `Số tiền thanh toán (${totalPaid}) vượt quá giá trị phải thu (${finalPrice})` },
       { status: 400 }
     );
   }
@@ -225,8 +245,10 @@ export async function POST(request: NextRequest) {
       receipt_number: receipt_number || null,
       payment_method_id: firstPaymentMethodId, // Cho khả năng tương thích ngược
       amount_paid: totalPaid,
-      debt_amount: pkg.price - totalPaid,
-      receipt_images: receipt_images || []
+      debt_amount: finalPrice - totalPaid,
+      receipt_images: receipt_images || [],
+      discount_type: discount_type || null,
+      discount_amount: discount_amount ? Number(discount_amount) : 0,
     })
     .select(`
       *,

@@ -59,6 +59,8 @@ export interface Registration {
   refund_receipt_image: string | null;
   cancellation_notes: string | null;
   receipt_images: string[] | null;
+  discount_type: 'PERCENTAGE' | 'FIXED' | null;
+  discount_amount: number | null;
   created_at: string;
 }
 

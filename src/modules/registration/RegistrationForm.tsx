@@ -25,6 +25,17 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
   const [error, setError] = useState("");
   const [result, setResult] = useState<RegistrationResult | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [user, setUser] = useState<{ full_name: string; role: string; username: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Unauthenticated");
+      })
+      .then((data) => setUser(data))
+      .catch(() => setUser(null));
+  }, []);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -40,6 +51,8 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
     amount_paid: "",
     payments: [] as Array<{ payment_method_id: string; amount: string }>,
     receipt_images: [] as string[],
+    discount_type: "" as 'PERCENTAGE' | 'FIXED' | "",
+    discount_amount: "",
   });
 
   // Fetch schools, packages, and payment methods
@@ -89,6 +102,34 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
 
   // Lấy gói đã chọn
   const selectedPackage = packages.find((p) => p.id === formData.package_id);
+
+  // Tính giá cuối cùng (sau giảm giá)
+  let finalPrice = selectedPackage?.price || 0;
+  if (formData.discount_type && formData.discount_amount) {
+    const discountVal = Number(formData.discount_amount);
+    if (formData.discount_type === 'PERCENTAGE') {
+      finalPrice = Math.max(0, finalPrice * (1 - discountVal / 100));
+    } else if (formData.discount_type === 'FIXED') {
+      finalPrice = Math.max(0, finalPrice - discountVal);
+    }
+  }
+
+  // Cập nhật amount_paid nếu vượt quá finalPrice (ví dụ khi áp dụng mã giảm giá)
+  useEffect(() => {
+    setFormData((prev) => {
+      const currentPaid = Number(prev.amount_paid) || 0;
+      if (currentPaid > finalPrice) {
+        const newPaidStr = finalPrice.toString();
+        
+        const defaultPayments = prev.payments.length > 0
+          ? prev.payments.map((p, idx) => idx === 0 ? { ...p, amount: newPaidStr } : p)
+          : (paymentMethods.length > 0 ? [{ payment_method_id: paymentMethods[0].id, amount: newPaidStr }] : []);
+
+        return { ...prev, amount_paid: newPaidStr, payments: defaultPayments };
+      }
+      return prev;
+    });
+  }, [finalPrice, paymentMethods]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -240,9 +281,9 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
       return;
     }
 
-    const pkgPrice = selectedPackage?.price || 0;
+    const pkgPrice = finalPrice;
     if (totalPaid > pkgPrice) {
-      setError(`Số tiền thanh toán (${formatPrice(totalPaid)}) không được vượt quá giá trị gói học (${formatPrice(pkgPrice)}).`);
+      setError(`Số tiền thanh toán (${formatPrice(totalPaid)}) không được vượt quá giá trị phải thu (${formatPrice(pkgPrice)}).`);
       return;
     }
 
@@ -309,6 +350,8 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
         amount_paid: "",
         payments: [],
         receipt_images: [],
+        discount_type: "",
+        discount_amount: "",
       });
       onRegistered();
     } catch {
@@ -454,7 +497,12 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
                 <div className="price-display">
                   {selectedPackage ? (
                     <>
-                      <span className="price-value">{formatPrice(selectedPackage.price)}</span>
+                      <span className="price-value" style={{ textDecoration: finalPrice < selectedPackage.price ? 'line-through' : 'none', color: finalPrice < selectedPackage.price ? 'var(--text-muted)' : 'inherit', fontSize: finalPrice < selectedPackage.price ? '14px' : 'inherit' }}>
+                        {formatPrice(selectedPackage.price)}
+                      </span>
+                      {finalPrice < selectedPackage.price && (
+                        <span className="price-value" style={{ marginLeft: '8px', color: 'var(--accent-rose)' }}>{formatPrice(finalPrice)}</span>
+                      )}
                       <span className="price-sessions">{selectedPackage.sessions_count} buổi</span>
                     </>
                   ) : (
@@ -463,6 +511,41 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
                 </div>
               </div>
             </div>
+
+            {/* Giảm giá (Chỉ dành cho ADMIN) */}
+            {user?.role === "ADMIN" && selectedPackage && (
+              <div className="form-row" style={{ marginTop: "16px" }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ color: "var(--accent-indigo)", fontWeight: 600 }}>🎁 Khuyến mãi / Giảm giá (Admin)</label>
+                  <select
+                    className="form-select"
+                    value={formData.discount_type}
+                    onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any, discount_amount: "" })}
+                  >
+                    <option value="">— Không giảm giá —</option>
+                    <option value="PERCENTAGE">Giảm theo phần trăm (%)</option>
+                    <option value="FIXED">Giảm số tiền cố định (VNĐ)</option>
+                  </select>
+                </div>
+                {formData.discount_type && (
+                  <div className="form-group">
+                    <label className="form-label">Mức giảm ({formData.discount_type === 'PERCENTAGE' ? '%' : 'VNĐ'}) *</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder={`Nhập mức giảm...`}
+                      value={formData.discount_amount}
+                      onChange={(e) => {
+                        let val = Number(e.target.value);
+                        if (formData.discount_type === 'PERCENTAGE' && val > 100) val = 100;
+                        if (val < 0) val = 0;
+                        setFormData({ ...formData, discount_amount: e.target.value ? val.toString() : "" });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Số tiền đóng thực tế + Công nợ */}
             {selectedPackage && (
@@ -496,7 +579,7 @@ export default function RegistrationForm({ onRegistered }: RegistrationFormProps
                     }}
                   >
                     <span className="price-value" style={{ color: "var(--accent-rose)" }}>
-                      {formatPrice(Math.max(0, (selectedPackage?.price || 0) - (Number(formData.amount_paid) || 0)))}
+                      {formatPrice(Math.max(0, finalPrice - (Number(formData.amount_paid) || 0)))}
                     </span>
                   </div>
                 </div>
